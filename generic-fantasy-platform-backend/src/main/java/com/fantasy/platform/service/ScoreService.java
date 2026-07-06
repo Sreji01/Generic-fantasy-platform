@@ -3,21 +3,28 @@ package com.fantasy.platform.service;
 import com.fantasy.platform.dto.score.ScoreRequest;
 import com.fantasy.platform.dto.score.ScoreResponse;
 import com.fantasy.platform.entity.FantasyTeam;
+import com.fantasy.platform.entity.Player;
+import com.fantasy.platform.entity.PlayerResult;
 import com.fantasy.platform.entity.Round;
 import com.fantasy.platform.entity.Score;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.FantasyTeamRepository;
+import com.fantasy.platform.repository.PlayerResultRepository;
 import com.fantasy.platform.repository.RoundRepository;
 import com.fantasy.platform.repository.ScoreRepository;
 import com.fantasy.platform.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +33,9 @@ public class ScoreService {
     private final ScoreRepository scoreRepository;
     private final FantasyTeamRepository fantasyTeamRepository;
     private final RoundRepository roundRepository;
+    private final PlayerResultRepository playerResultRepository;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public ScoreResponse create(ScoreRequest request, Long userId) {
         FantasyTeam team = findTeamOrThrow(request.fantasyTeamId());
@@ -39,6 +48,58 @@ public class ScoreService {
 
         scoreRepository.save(score);
         return toResponse(score);
+    }
+
+    public List<ScoreResponse> calculateForRound(Long roundId, Long userId) {
+        Round round = findRoundOrThrow(roundId);
+        requireDomainOwnerOrAdmin(round, userId);
+
+        Map<Long, Double> pointsByPlayerId = playerResultRepository.findByRoundId(roundId).stream()
+                .collect(Collectors.toMap(
+                        pr -> pr.getPlayer().getId(),
+                        pr -> pr.getPointsEarned() != null ? pr.getPointsEarned() : 0.0,
+                        (a, b) -> b));
+
+        List<FantasyTeam> teams = fantasyTeamRepository.findByLeagueDomainId(round.getDomain().getId());
+
+        return teams.stream()
+                .map(team -> calculateForTeam(team, round, pointsByPlayerId))
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private Score calculateForTeam(FantasyTeam team, Round round, Map<Long, Double> pointsByPlayerId) {
+        Map<Long, Double> breakdown = new LinkedHashMap<>();
+        double total = 0;
+        for (Player player : team.getPlayers()) {
+            double earned = pointsByPlayerId.getOrDefault(player.getId(), 0.0);
+            breakdown.put(player.getId(), earned);
+            total += earned;
+        }
+
+        Score score = scoreRepository.findByFantasyTeamIdAndRoundId(team.getId(), round.getId())
+                .orElseGet(Score::new);
+        score.setFantasyTeam(team);
+        score.setRound(round);
+        score.setPoints(total);
+        score.setPointsBreakdownJson(writeBreakdownJson(breakdown));
+        scoreRepository.save(score);
+
+        double totalPoints = scoreRepository.findByFantasyTeamId(team.getId()).stream()
+                .mapToDouble(Score::getPoints)
+                .sum();
+        team.setTotalPoints(totalPoints);
+        fantasyTeamRepository.save(team);
+
+        return score;
+    }
+
+    private String writeBreakdownJson(Map<Long, Double> breakdown) {
+        try {
+            return objectMapper.writeValueAsString(breakdown);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to serialize points breakdown");
+        }
     }
 
     public List<ScoreResponse> getAll() {
@@ -107,6 +168,18 @@ public class ScoreService {
 
         if (!isOwner && !isAdmin) {
             throw new AccessDeniedException("Only the domain owner or an admin can manage scores");
+        }
+    }
+
+    private void requireDomainOwnerOrAdmin(Round round, Long userId) {
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        boolean isOwner = round.getDomain().getCreatedBy().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Only the domain owner or an admin can calculate scores");
         }
     }
 

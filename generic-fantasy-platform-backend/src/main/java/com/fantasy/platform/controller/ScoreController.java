@@ -33,6 +33,12 @@ public class ScoreController {
         return ResponseEntity.ok(scoreService.create(request, principal.getUser().getId()));
     }
 
+    @PostMapping("/calculate/{roundId}")
+    public ResponseEntity<List<ScoreResponse>> calculateForRound(@PathVariable Long roundId,
+                                                                   @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(scoreService.calculateForRound(roundId, principal.getUser().getId()));
+    }
+
     @GetMapping
     public ResponseEntity<List<ScoreResponse>> getAll(@RequestParam(required = false) Long fantasyTeamId,
                                                         @RequestParam(required = false) Long roundId) {
