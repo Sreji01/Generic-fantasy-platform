@@ -2,6 +2,7 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.playerresult.PlayerResultRequest;
 import com.fantasy.platform.dto.playerresult.PlayerResultResponse;
+import com.fantasy.platform.entity.Domain;
 import com.fantasy.platform.entity.Player;
 import com.fantasy.platform.entity.PlayerResult;
 import com.fantasy.platform.entity.Round;
@@ -11,6 +12,8 @@ import com.fantasy.platform.repository.PlayerRepository;
 import com.fantasy.platform.repository.PlayerResultRepository;
 import com.fantasy.platform.repository.RoundRepository;
 import com.fantasy.platform.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class PlayerResultService {
     private final PlayerRepository playerRepository;
     private final RoundRepository roundRepository;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public PlayerResultResponse create(PlayerResultRequest request, Long userId) {
         Player player = findPlayerOrThrow(request.playerId());
@@ -80,7 +85,34 @@ public class PlayerResultService {
         result.setPlayer(player);
         result.setRound(round);
         result.setResultsJson(request.resultsJson());
-        result.setPointsEarned(request.pointsEarned());
+        result.setPointsEarned(computePointsEarned(round.getDomain(), request));
+    }
+
+    private Double computePointsEarned(Domain domain, PlayerResultRequest request) {
+        if (request.resultsJson() == null || request.resultsJson().isBlank()) {
+            return request.pointsEarned();
+        }
+
+        Map<String, Double> rules = parseStatsJson(domain.getScoringRulesJson());
+        Map<String, Double> stats = parseStatsJson(request.resultsJson());
+
+        double total = 0;
+        for (Map.Entry<String, Double> stat : stats.entrySet()) {
+            total += stat.getValue() * rules.getOrDefault(stat.getKey(), 0.0);
+        }
+        return total;
+    }
+
+    private Map<String, Double> parseStatsJson(String json) {
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Double>>() {
+            });
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON format: " + json);
+        }
     }
 
     private PlayerResult findResultOrThrow(Long id) {
