@@ -63,9 +63,4 @@ public class League {
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "league", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FantasyTeam> fantasyTeams = new ArrayList<>();
-
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "league", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Round> rounds = new ArrayList<>();
 }

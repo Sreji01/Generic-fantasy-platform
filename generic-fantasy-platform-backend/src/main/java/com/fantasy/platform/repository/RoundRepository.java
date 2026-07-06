@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface RoundRepository extends JpaRepository<Round, Long> {
 
-    List<Round> findByLeagueId(Long leagueId);
+    List<Round> findByDomainId(Long domainId);
 }

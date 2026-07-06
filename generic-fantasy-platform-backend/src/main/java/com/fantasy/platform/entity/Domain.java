@@ -55,4 +55,9 @@ public class Domain {
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Round> rounds = new ArrayList<>();
 }

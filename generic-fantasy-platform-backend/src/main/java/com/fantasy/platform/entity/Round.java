@@ -40,8 +40,8 @@ public class Round {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "league_id", nullable = false)
-    private League league;
+    @JoinColumn(name = "domain_id", nullable = false)
+    private Domain domain;
 
     @Column(name = "start_date")
     private LocalDate startDate;
