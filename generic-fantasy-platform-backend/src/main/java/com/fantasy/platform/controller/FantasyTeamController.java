@@ -2,6 +2,7 @@ package com.fantasy.platform.controller;
 
 import com.fantasy.platform.dto.fantasyteam.FantasyTeamRequest;
 import com.fantasy.platform.dto.fantasyteam.FantasyTeamResponse;
+import com.fantasy.platform.dto.fantasyteam.StandingEntry;
 import com.fantasy.platform.security.UserPrincipal;
 import com.fantasy.platform.service.FantasyTeamService;
 import jakarta.validation.Valid;
@@ -39,6 +40,11 @@ public class FantasyTeamController {
             return ResponseEntity.ok(fantasyTeamService.getByLeague(leagueId));
         }
         return ResponseEntity.ok(fantasyTeamService.getAll());
+    }
+
+    @GetMapping("/standings")
+    public ResponseEntity<List<StandingEntry>> getStandings(@RequestParam Long leagueId) {
+        return ResponseEntity.ok(fantasyTeamService.getStandingsByLeague(leagueId));
     }
 
     @GetMapping("/me")

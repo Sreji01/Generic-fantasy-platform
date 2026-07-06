@@ -2,6 +2,7 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.fantasyteam.FantasyTeamRequest;
 import com.fantasy.platform.dto.fantasyteam.FantasyTeamResponse;
+import com.fantasy.platform.dto.fantasyteam.StandingEntry;
 import com.fantasy.platform.entity.FantasyTeam;
 import com.fantasy.platform.entity.League;
 import com.fantasy.platform.entity.Player;
@@ -19,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -54,6 +57,25 @@ public class FantasyTeamService {
 
     public List<FantasyTeamResponse> getByUser(Long userId) {
         return fantasyTeamRepository.findByUserId(userId).stream().map(this::toResponse).toList();
+    }
+
+    public List<StandingEntry> getStandingsByLeague(Long leagueId) {
+        List<FantasyTeam> teams = fantasyTeamRepository.findByLeagueId(leagueId);
+        teams.sort(Comparator.comparing(FantasyTeam::getTotalPoints, Comparator.nullsFirst(Comparator.naturalOrder())).reversed());
+
+        List<StandingEntry> standings = new ArrayList<>();
+        for (int i = 0; i < teams.size(); i++) {
+            FantasyTeam team = teams.get(i);
+            standings.add(new StandingEntry(
+                    i + 1,
+                    team.getId(),
+                    team.getName(),
+                    team.getUser().getId(),
+                    team.getUser().getUsername(),
+                    team.getTotalPoints()
+            ));
+        }
+        return standings;
     }
 
     public FantasyTeamResponse getById(Long id) {
