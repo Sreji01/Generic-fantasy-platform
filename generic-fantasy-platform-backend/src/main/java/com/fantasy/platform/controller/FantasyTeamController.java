@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/fantasy-teams")
+@RequestMapping("/fantasy-teams")
 @RequiredArgsConstructor
 public class FantasyTeamController {
 
