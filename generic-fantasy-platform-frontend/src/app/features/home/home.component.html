@@ -1,0 +1,12 @@
+<mat-toolbar color="primary">
+  <span>Generic Fantasy Platform</span>
+  <span class="spacer"></span>
+  @if (currentUser(); as user) {
+    <span class="username">Welcome, {{ user.username }}</span>
+  }
+  <button mat-button (click)="logout()">Logout</button>
+</mat-toolbar>
+
+<div class="content">
+  <p>You are logged in.</p>
+</div>
