@@ -1,0 +1,55 @@
+.full-width {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.scoring-rules-section {
+  margin-top: 8px;
+}
+
+.scoring-rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+.rule-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.points-field {
+  width: 90px;
+}
+
+.scoring-rules-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.rule-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}

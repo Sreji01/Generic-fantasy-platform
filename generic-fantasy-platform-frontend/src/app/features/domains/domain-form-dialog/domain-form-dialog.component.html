@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Domain' : 'Create Domain' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <mat-error>Name is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="2"></textarea>
+    </mat-form-field>
+
+    <div class="scoring-rules-section">
+      <div class="scoring-rules-header">
+        <h3>Scoring Rules</h3>
+        <button mat-button type="button" (click)="toggleScoringRuleForm()">
+          <mat-icon>add</mat-icon>
+          Add Scoring Rule
+        </button>
+      </div>
+
+      @if (showScoringRuleForm) {
+        <div class="rule-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <input matInput [(ngModel)]="ruleFormName" [ngModelOptions]="{standalone: true}" placeholder="e.g. goal" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Points</mat-label>
+            <input matInput type="number" [(ngModel)]="ruleFormPoints" [ngModelOptions]="{standalone: true}" />
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="button" (click)="confirmScoringRule()">
+            {{ editingRuleTempId !== null ? 'Update' : 'Add' }}
+          </button>
+          <button mat-button type="button" (click)="toggleScoringRuleForm()">Cancel</button>
+        </div>
+      }
+
+      @if (scoringRules().length > 0) {
+        <ul class="scoring-rules-list">
+          @for (rule of scoringRules(); track rule.tempId) {
+            <li>
+              <span>{{ rule.name }} — {{ rule.points }} pts</span>
+              <span class="rule-actions">
+                <button mat-icon-button type="button" (click)="editScoringRule(rule)" aria-label="Edit scoring rule">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button type="button" (click)="removeScoringRule(rule.tempId)" aria-label="Remove scoring rule">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty-state">No scoring rules yet.</p>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit">{{ isEditMode ? 'Save' : 'Create' }}</button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,54 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goHome()" aria-label="Back to home">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Domains</span>
+  <span class="spacer"></span>
+  <button mat-flat-button (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Create Domain
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  <table mat-table [dataSource]="domains()" class="mat-elevation-z1">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let domain">{{ domain.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let domain">{{ domain.description || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="createdBy">
+      <th mat-header-cell *matHeaderCellDef>Created By</th>
+      <td mat-cell *matCellDef="let domain">{{ domain.createdByUsername }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let domain">
+        @if (canModify(domain)) {
+          <button mat-icon-button (click)="openFieldBuilder(domain)" aria-label="Configure field">
+            <mat-icon>grid_on</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openEditDialog(domain)" aria-label="Edit domain">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteDomain(domain)" aria-label="Delete domain">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  @if (domains().length === 0) {
+    <p class="empty-state">No domains yet. Create one to get started.</p>
+  }
+</div>

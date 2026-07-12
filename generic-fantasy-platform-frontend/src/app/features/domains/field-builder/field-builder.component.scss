@@ -1,0 +1,97 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.field {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  aspect-ratio: 3 / 2;
+  background: #e3f2e1;
+  border: 2px solid #a5d6a7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.position-pill {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  padding: 4px 8px 4px 12px;
+  font-size: 0.875rem;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  user-select: none;
+
+  button {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+
+    ::ng-deep .mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.scoring-rules-section {
+  max-width: 500px;
+  margin-top: 8px;
+}
+
+.scoring-rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.points-field {
+  width: 100px;
+}
+
+.scoring-rules-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.rule-actions {
+  display: flex;
+  gap: 4px;
+}

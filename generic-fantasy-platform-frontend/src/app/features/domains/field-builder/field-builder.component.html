@@ -1,0 +1,98 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="cancel()" aria-label="Back to domains">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Field Builder — {{ domainName() }}</span>
+  <span class="spacer"></span>
+  <button mat-flat-button (click)="save()">Save Field</button>
+</mat-toolbar>
+
+<div class="content">
+  <form class="add-form" (ngSubmit)="addPosition()">
+    <mat-form-field appearance="outline">
+      <mat-label>Position name</mat-label>
+      <input matInput name="positionName" [(ngModel)]="newPositionName" placeholder="e.g. GK" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Player count</mat-label>
+      <input matInput type="number" name="positionCount" [(ngModel)]="newPositionCount" min="1" />
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" type="submit">
+      <mat-icon>add</mat-icon>
+      Add Position
+    </button>
+  </form>
+
+  <div class="field" #fieldContainer>
+    @for (position of positions(); track position.tempId) {
+      <div
+        class="position-pill"
+        cdkDrag
+        [cdkDragBoundary]="fieldContainer"
+        [style.left.%]="position.xPosition"
+        [style.top.%]="position.yPosition"
+        (cdkDragEnded)="onDragEnded($event, position)"
+      >
+        <span>{{ position.name }} ({{ position.playerCount }})</span>
+        <button mat-icon-button (click)="removePosition(position.tempId)" aria-label="Remove position">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (positions().length === 0) {
+    <p class="empty-state">No positions yet. Add one above, then drag it onto the field.</p>
+  }
+
+  <div class="scoring-rules-section">
+    <div class="scoring-rules-header">
+      <h3>Scoring Rules</h3>
+      <button mat-flat-button color="primary" type="button" (click)="toggleScoringRuleForm()">
+        <mat-icon>add</mat-icon>
+        Add Scoring Rule
+      </button>
+    </div>
+
+    @if (showScoringRuleForm) {
+      <form class="add-form" (ngSubmit)="confirmScoringRule()">
+        <mat-form-field appearance="outline">
+          <mat-label>Description</mat-label>
+          <input matInput name="ruleName" [(ngModel)]="ruleFormName" placeholder="e.g. goal" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="points-field">
+          <mat-label>Points</mat-label>
+          <input matInput type="number" name="rulePoints" [(ngModel)]="ruleFormPoints" />
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit">
+          {{ editingRuleTempId !== null ? 'Update' : 'Add' }}
+        </button>
+        <button mat-button type="button" (click)="toggleScoringRuleForm()">Cancel</button>
+      </form>
+    }
+
+    @if (scoringRules().length > 0) {
+      <ul class="scoring-rules-list">
+        @for (rule of scoringRules(); track rule.tempId) {
+          <li>
+            <span>{{ rule.name }} — {{ rule.points }} pts</span>
+            <span class="rule-actions">
+              <button mat-icon-button (click)="editScoringRule(rule)" aria-label="Edit scoring rule">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="removeScoringRule(rule.tempId)" aria-label="Remove scoring rule">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-state">No scoring rules yet.</p>
+    }
+  </div>
+</div>
