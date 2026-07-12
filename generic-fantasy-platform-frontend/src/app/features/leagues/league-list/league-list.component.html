@@ -1,0 +1,58 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goHome()" aria-label="Back to home">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Leagues</span>
+  <span class="spacer"></span>
+  <button mat-flat-button (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Create League
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  <table mat-table [dataSource]="leagues()" class="mat-elevation-z1">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let league">{{ league.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="domain">
+      <th mat-header-cell *matHeaderCellDef>Domain</th>
+      <td mat-cell *matCellDef="let league">{{ league.domainName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let league">{{ league.status }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="dates">
+      <th mat-header-cell *matHeaderCellDef>Dates</th>
+      <td mat-cell *matCellDef="let league">
+        {{ league.startDate || '—' }} → {{ league.endDate || '—' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let league">
+        @if (isAdmin()) {
+          <button mat-icon-button (click)="openEditDialog(league)" aria-label="Edit league">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteLeague(league)" aria-label="Delete league">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  @if (leagues().length === 0) {
+    <p class="empty-state">No leagues yet. Create one to get started.</p>
+  }
+</div>
