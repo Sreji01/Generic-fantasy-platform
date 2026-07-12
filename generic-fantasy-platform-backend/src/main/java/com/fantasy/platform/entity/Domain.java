@@ -35,11 +35,15 @@ public class Domain {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "scoring_rules_json", columnDefinition = "JSON")
-    private String scoringRulesJson;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScoringRule> scoringRules = new ArrayList<>();
 
-    @Column(name = "positions_json", columnDefinition = "JSON")
-    private String positionsJson;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DomainPosition> positions = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

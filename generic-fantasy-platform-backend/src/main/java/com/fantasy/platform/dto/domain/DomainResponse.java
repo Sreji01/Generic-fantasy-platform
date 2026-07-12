@@ -1,11 +1,13 @@
 package com.fantasy.platform.dto.domain;
 
+import java.util.List;
+
 public record DomainResponse(
         Long id,
         String name,
         String description,
-        String scoringRulesJson,
-        String positionsJson,
+        List<DomainScoringRuleResponse> scoringRules,
+        List<DomainPositionResponse> positions,
         Long createdById,
         String createdByUsername
 ) {

@@ -6,6 +6,7 @@ import com.fantasy.platform.entity.Domain;
 import com.fantasy.platform.entity.Player;
 import com.fantasy.platform.entity.PlayerResult;
 import com.fantasy.platform.entity.Round;
+import com.fantasy.platform.entity.ScoringRule;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.PlayerRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -93,7 +95,8 @@ public class PlayerResultService {
             return request.pointsEarned();
         }
 
-        Map<String, Double> rules = parseStatsJson(domain.getScoringRulesJson());
+        Map<String, Double> rules = domain.getScoringRules().stream()
+                .collect(Collectors.toMap(ScoringRule::getName, ScoringRule::getPoints, (a, b) -> b));
         Map<String, Double> stats = parseStatsJson(request.resultsJson());
 
         double total = 0;
