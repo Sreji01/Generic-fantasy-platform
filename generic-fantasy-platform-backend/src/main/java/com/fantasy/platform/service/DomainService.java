@@ -6,8 +6,11 @@ import com.fantasy.platform.dto.domain.DomainRequest;
 import com.fantasy.platform.dto.domain.DomainResponse;
 import com.fantasy.platform.dto.domain.DomainScoringRuleRequest;
 import com.fantasy.platform.dto.domain.DomainScoringRuleResponse;
+import com.fantasy.platform.dto.domain.PositionSlotRequest;
+import com.fantasy.platform.dto.domain.PositionSlotResponse;
 import com.fantasy.platform.entity.Domain;
 import com.fantasy.platform.entity.DomainPosition;
+import com.fantasy.platform.entity.PositionSlot;
 import com.fantasy.platform.entity.ScoringRule;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
@@ -35,6 +38,8 @@ public class DomainService {
         Domain domain = new Domain();
         domain.setName(request.name());
         domain.setDescription(request.description());
+        domain.setFieldRows(request.fieldRows());
+        domain.setFieldCols(request.fieldCols());
         domain.setCreatedBy(currentUser);
         domain.setPositions(buildPositions(request.positions(), domain));
         domain.setScoringRules(buildScoringRules(request.scoringRules(), domain));
@@ -57,6 +62,8 @@ public class DomainService {
 
         domain.setName(request.name());
         domain.setDescription(request.description());
+        domain.setFieldRows(request.fieldRows());
+        domain.setFieldCols(request.fieldCols());
 
         domain.getPositions().clear();
         domain.getPositions().addAll(buildPositions(request.positions(), domain));
@@ -103,13 +110,26 @@ public class DomainService {
         for (DomainPositionRequest request : requests) {
             DomainPosition position = new DomainPosition();
             position.setName(request.name());
-            position.setPlayerCount(request.playerCount());
-            position.setXPosition(request.xPosition());
-            position.setYPosition(request.yPosition());
             position.setDomain(domain);
+            position.setSlots(buildSlots(request.slots(), position));
             positions.add(position);
         }
         return positions;
+    }
+
+    private List<PositionSlot> buildSlots(List<PositionSlotRequest> requests, DomainPosition position) {
+        if (requests == null) {
+            return new ArrayList<>();
+        }
+        List<PositionSlot> slots = new ArrayList<>();
+        for (PositionSlotRequest request : requests) {
+            PositionSlot slot = new PositionSlot();
+            slot.setRowIndex(request.rowIndex());
+            slot.setColIndex(request.colIndex());
+            slot.setPosition(position);
+            slots.add(slot);
+        }
+        return slots;
     }
 
     private List<ScoringRule> buildScoringRules(List<DomainScoringRuleRequest> requests, Domain domain) {
@@ -129,7 +149,13 @@ public class DomainService {
 
     private DomainResponse toResponse(Domain domain) {
         List<DomainPositionResponse> positions = domain.getPositions().stream()
-                .map(p -> new DomainPositionResponse(p.getId(), p.getName(), p.getPlayerCount(), p.getXPosition(), p.getYPosition()))
+                .map(p -> new DomainPositionResponse(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlots().stream()
+                                .map(s -> new PositionSlotResponse(s.getId(), s.getRowIndex(), s.getColIndex()))
+                                .toList()
+                ))
                 .toList();
 
         List<DomainScoringRuleResponse> scoringRules = domain.getScoringRules().stream()
@@ -140,6 +166,8 @@ public class DomainService {
                 domain.getId(),
                 domain.getName(),
                 domain.getDescription(),
+                domain.getFieldRows(),
+                domain.getFieldCols(),
                 scoringRules,
                 positions,
                 domain.getCreatedBy().getId(),

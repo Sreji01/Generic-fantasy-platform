@@ -35,6 +35,12 @@ public class Domain {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "field_rows", nullable = false, columnDefinition = "INTEGER DEFAULT 10")
+    private Integer fieldRows = 10;
+
+    @Column(name = "field_cols", nullable = false, columnDefinition = "INTEGER DEFAULT 10")
+    private Integer fieldCols = 10;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
