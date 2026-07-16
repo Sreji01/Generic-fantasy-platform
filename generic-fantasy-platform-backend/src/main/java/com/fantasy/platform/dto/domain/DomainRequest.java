@@ -12,6 +12,7 @@ public record DomainRequest(
         String description,
         @NotNull @Min(1) Integer fieldRows,
         @NotNull @Min(1) Integer fieldCols,
+        String backgroundImageUrl,
         @Valid List<DomainScoringRuleRequest> scoringRules,
         @Valid List<DomainPositionRequest> positions
 ) {

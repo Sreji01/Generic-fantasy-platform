@@ -40,6 +40,7 @@ public class DomainService {
         domain.setDescription(request.description());
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
+        domain.setBackgroundImageUrl(request.backgroundImageUrl());
         domain.setCreatedBy(currentUser);
         domain.setPositions(buildPositions(request.positions(), domain));
         domain.setScoringRules(buildScoringRules(request.scoringRules(), domain));
@@ -64,6 +65,7 @@ public class DomainService {
         domain.setDescription(request.description());
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
+        domain.setBackgroundImageUrl(request.backgroundImageUrl());
 
         domain.getPositions().clear();
         domain.getPositions().addAll(buildPositions(request.positions(), domain));
@@ -168,6 +170,7 @@ public class DomainService {
                 domain.getDescription(),
                 domain.getFieldRows(),
                 domain.getFieldCols(),
+                domain.getBackgroundImageUrl(),
                 scoringRules,
                 positions,
                 domain.getCreatedBy().getId(),

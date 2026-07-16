@@ -8,6 +8,7 @@ public record DomainResponse(
         String description,
         Integer fieldRows,
         Integer fieldCols,
+        String backgroundImageUrl,
         List<DomainScoringRuleResponse> scoringRules,
         List<DomainPositionResponse> positions,
         Long createdById,

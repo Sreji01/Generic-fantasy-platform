@@ -41,6 +41,9 @@ public class Domain {
     @Column(name = "field_cols", nullable = false, columnDefinition = "INTEGER DEFAULT 10")
     private Integer fieldCols = 10;
 
+    @Column(name = "background_image_url", columnDefinition = "TEXT")
+    private String backgroundImageUrl;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
