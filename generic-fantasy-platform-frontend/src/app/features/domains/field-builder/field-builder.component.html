@@ -39,6 +39,23 @@
 
       <button mat-flat-button type="submit">Apply Size</button>
     </form>
+
+    <div class="add-form">
+      <input
+        #backgroundInput
+        type="file"
+        accept="image/*"
+        hidden
+        (change)="onBackgroundImageSelected($event)"
+      />
+      <button mat-flat-button type="button" (click)="backgroundInput.click()">
+        <mat-icon>image</mat-icon>
+        Upload Background
+      </button>
+      @if (backgroundImageUrl()) {
+        <button mat-button type="button" (click)="removeBackgroundImage()">Remove Background</button>
+      }
+    </div>
   </div>
 
   <div cdkDropListGroup class="field-area">
@@ -46,6 +63,7 @@
       class="grid-field"
       [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
       [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
+      [style.background-image]="backgroundImageUrl() ? 'url(' + backgroundImageUrl() + ')' : null"
     >
       @for (row of gridRows(); track row) {
         @for (col of gridCols(); track col) {

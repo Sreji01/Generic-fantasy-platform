@@ -6,6 +6,7 @@ export interface DomainRequest {
   description?: string;
   fieldRows: number;
   fieldCols: number;
+  backgroundImageUrl?: string;
   scoringRules: DomainScoringRuleRequest[];
   positions: DomainPositionRequest[];
 }
@@ -16,6 +17,7 @@ export interface DomainResponse {
   description: string | null;
   fieldRows: number;
   fieldCols: number;
+  backgroundImageUrl: string | null;
   scoringRules: DomainScoringRuleResponse[];
   positions: DomainPositionResponse[];
   createdById: number;

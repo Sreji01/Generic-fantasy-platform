@@ -58,7 +58,9 @@
   display: grid;
   gap: 2px;
   width: fit-content;
-  background: #e3f2e1;
+  background-color: #e3f2e1;
+  background-size: cover;
+  background-position: center;
   border: 2px solid #a5d6a7;
   border-radius: 8px;
   padding: 4px;
@@ -140,7 +142,7 @@
 .scoring-rules-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 8px;
 
   h3 {

@@ -81,6 +81,7 @@ export class FieldBuilderComponent implements OnInit {
   fieldColsInput = DEFAULT_FIELD_SIZE;
 
   readonly domainName = signal('');
+  readonly backgroundImageUrl = signal<string | null>(null);
   readonly positions = signal<WorkingPosition[]>([]);
   readonly scoringRules = signal<WorkingScoringRule[]>([]);
 
@@ -101,6 +102,7 @@ export class FieldBuilderComponent implements OnInit {
       this.fieldCols.set(domain.fieldCols);
       this.fieldRowsInput = domain.fieldRows;
       this.fieldColsInput = domain.fieldCols;
+      this.backgroundImageUrl.set(domain.backgroundImageUrl);
       this.positions.set(
         domain.positions.map((p) => ({
           tempId: this.nextTempId++,
@@ -124,6 +126,21 @@ export class FieldBuilderComponent implements OnInit {
     }
     this.fieldRows.set(this.fieldRowsInput);
     this.fieldCols.set(this.fieldColsInput);
+  }
+
+  onBackgroundImageSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => this.backgroundImageUrl.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  removeBackgroundImage(): void {
+    this.backgroundImageUrl.set(null);
   }
 
   cellId(row: number, col: number): string {
@@ -260,6 +277,7 @@ export class FieldBuilderComponent implements OnInit {
       description: this.domain.description ?? undefined,
       fieldRows: this.fieldRows(),
       fieldCols: this.fieldCols(),
+      backgroundImageUrl: this.backgroundImageUrl() ?? undefined,
       positions: this.positions().map((p) => ({
         name: p.name,
         slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
