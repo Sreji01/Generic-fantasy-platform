@@ -21,9 +21,17 @@
 
 .rule-form {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+
+  mat-form-field:not(.points-field) {
+    flex: 1;
+  }
+
+  button {
+    margin-top: -14px;
+  }
 }
 
 .points-field {

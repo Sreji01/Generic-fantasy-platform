@@ -46,7 +46,7 @@ export class DomainListComponent implements OnInit {
   }
 
   openCreateDialog(): void {
-    const ref = this.dialog.open(DomainFormDialogComponent, { data: null, width: '480px' });
+    const ref = this.dialog.open(DomainFormDialogComponent, { data: null, width: '600px', maxWidth: '600px' });
 
     ref.afterClosed().subscribe((result: DomainRequest | undefined) => {
       if (!result) {
@@ -67,7 +67,7 @@ export class DomainListComponent implements OnInit {
   }
 
   openEditDialog(domain: DomainResponse): void {
-    const ref = this.dialog.open(DomainFormDialogComponent, { data: domain, width: '480px' });
+    const ref = this.dialog.open(DomainFormDialogComponent, { data: domain, width: '600px', maxWidth: '600px' });
 
     ref.afterClosed().subscribe((result: DomainRequest | undefined) => {
       if (!result) {
