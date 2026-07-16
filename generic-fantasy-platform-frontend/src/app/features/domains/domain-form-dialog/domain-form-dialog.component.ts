@@ -101,11 +101,11 @@ export class DomainFormDialogComponent {
     const result: DomainRequest = {
       name: raw.name ?? '',
       description: raw.description || undefined,
+      fieldRows: this.data?.fieldRows ?? 5,
+      fieldCols: this.data?.fieldCols ?? 5,
       positions: (this.data?.positions ?? []).map((p) => ({
         name: p.name,
-        playerCount: p.playerCount,
-        xPosition: p.xPosition,
-        yPosition: p.yPosition
+        slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
       })),
       scoringRules: this.scoringRules().map((r) => ({
         name: r.name,

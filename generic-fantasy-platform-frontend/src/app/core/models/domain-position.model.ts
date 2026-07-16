@@ -1,10 +1,12 @@
+import { PositionSlotRequest, PositionSlotResponse } from './position-slot.model';
+
 export interface DomainPositionRequest {
   name: string;
-  playerCount: number;
-  xPosition: number;
-  yPosition: number;
+  slots: PositionSlotRequest[];
 }
 
-export interface DomainPositionResponse extends DomainPositionRequest {
+export interface DomainPositionResponse {
   id: number;
+  name: string;
+  slots: PositionSlotResponse[];
 }

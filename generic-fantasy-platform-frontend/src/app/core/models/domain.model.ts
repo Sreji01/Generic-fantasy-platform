@@ -4,6 +4,8 @@ import { DomainScoringRuleRequest, DomainScoringRuleResponse } from './domain-sc
 export interface DomainRequest {
   name: string;
   description?: string;
+  fieldRows: number;
+  fieldCols: number;
   scoringRules: DomainScoringRuleRequest[];
   positions: DomainPositionRequest[];
 }
@@ -12,6 +14,8 @@ export interface DomainResponse {
   id: number;
   name: string;
   description: string | null;
+  fieldRows: number;
+  fieldCols: number;
   scoringRules: DomainScoringRuleResponse[];
   positions: DomainPositionResponse[];
   createdById: number;
