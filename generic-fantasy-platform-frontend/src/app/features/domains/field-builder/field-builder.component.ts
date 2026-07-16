@@ -1,8 +1,9 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CdkDragEnd, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,18 +13,34 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { DomainService } from '../../../core/services/domain.service';
 import { DomainResponse } from '../../../core/models/domain.model';
 
+const ROTATION_ROW = -1;
+const CELL_SIZE = 60;
+const DEFAULT_FIELD_SIZE = 5;
+
+interface WorkingSlot {
+  tempId: number;
+  rowIndex: number;
+  colIndex: number;
+}
+
 interface WorkingPosition {
   tempId: number;
   name: string;
-  playerCount: number;
-  xPosition: number;
-  yPosition: number;
+  slots: WorkingSlot[];
 }
 
 interface WorkingScoringRule {
   tempId: number;
   name: string;
   points: number;
+}
+
+interface CellRef {
+  row: number;
+  col: number;
+  position: WorkingPosition;
+  slot: WorkingSlot;
+  slotNumber: number;
 }
 
 @Component({
@@ -33,6 +50,7 @@ interface WorkingScoringRule {
     FormsModule,
     DragDropModule,
     MatButtonModule,
+    MatCardModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -42,8 +60,6 @@ interface WorkingScoringRule {
   styleUrl: './field-builder.component.scss'
 })
 export class FieldBuilderComponent implements OnInit {
-  @ViewChild('fieldContainer') private readonly fieldContainerRef!: ElementRef<HTMLDivElement>;
-
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly domainService = inject(DomainService);
@@ -52,6 +68,17 @@ export class FieldBuilderComponent implements OnInit {
   private domainId!: number;
   private domain: DomainResponse | null = null;
   private nextTempId = 1;
+
+  readonly fieldRows = signal(DEFAULT_FIELD_SIZE);
+  readonly fieldCols = signal(DEFAULT_FIELD_SIZE);
+  readonly gridRows = computed(() => Array.from({ length: this.fieldRows() }, (_, i) => i));
+  readonly gridCols = computed(() => Array.from({ length: this.fieldCols() }, (_, i) => i));
+  readonly rotationCount = computed(() => this.fieldRows() * this.fieldCols());
+  readonly rotationSlots = computed(() => Array.from({ length: this.rotationCount() }, (_, i) => i));
+  readonly cellSize = CELL_SIZE;
+
+  fieldRowsInput = DEFAULT_FIELD_SIZE;
+  fieldColsInput = DEFAULT_FIELD_SIZE;
 
   readonly domainName = signal('');
   readonly positions = signal<WorkingPosition[]>([]);
@@ -70,13 +97,15 @@ export class FieldBuilderComponent implements OnInit {
     this.domainService.getById(this.domainId).subscribe((domain) => {
       this.domain = domain;
       this.domainName.set(domain.name);
+      this.fieldRows.set(domain.fieldRows);
+      this.fieldCols.set(domain.fieldCols);
+      this.fieldRowsInput = domain.fieldRows;
+      this.fieldColsInput = domain.fieldCols;
       this.positions.set(
         domain.positions.map((p) => ({
           tempId: this.nextTempId++,
           name: p.name,
-          playerCount: p.playerCount,
-          xPosition: p.xPosition,
-          yPosition: p.yPosition
+          slots: p.slots.map((s) => ({ tempId: this.nextTempId++, rowIndex: s.rowIndex, colIndex: s.colIndex }))
         }))
       );
       this.scoringRules.set(
@@ -89,46 +118,89 @@ export class FieldBuilderComponent implements OnInit {
     });
   }
 
+  applyFieldSize(): void {
+    if (this.fieldRowsInput < 1 || this.fieldColsInput < 1) {
+      return;
+    }
+    this.fieldRows.set(this.fieldRowsInput);
+    this.fieldCols.set(this.fieldColsInput);
+  }
+
+  cellId(row: number, col: number): string {
+    return `cell-${row}-${col}`;
+  }
+
+  cellAt(row: number, col: number): CellRef | null {
+    for (const position of this.positions()) {
+      const index = position.slots.findIndex((s) => s.rowIndex === row && s.colIndex === col);
+      if (index !== -1) {
+        return { row, col, position, slot: position.slots[index], slotNumber: index + 1 };
+      }
+    }
+    return null;
+  }
+
   addPosition(): void {
-    if (!this.newPositionName.trim() || this.newPositionCount < 1) {
+    const name = this.newPositionName.trim();
+    if (!name || this.newPositionCount < 1) {
       return;
     }
 
-    this.positions.update((positions) => [
-      ...positions,
-      {
-        tempId: this.nextTempId++,
-        name: this.newPositionName.trim(),
-        playerCount: this.newPositionCount,
-        xPosition: 50,
-        yPosition: 50
-      }
-    ]);
+    const freeSlots = this.findFreeRotationSlots(this.newPositionCount);
+    if (freeSlots.length < this.newPositionCount) {
+      this.snackBar.open('Not enough free rotation slots. Move players onto the field first.', 'Close', { duration: 3500 });
+      return;
+    }
+
+    const slots: WorkingSlot[] = freeSlots.map((col) => ({
+      tempId: this.nextTempId++,
+      rowIndex: ROTATION_ROW,
+      colIndex: col
+    }));
+
+    this.positions.update((positions) => [...positions, { tempId: this.nextTempId++, name, slots }]);
 
     this.newPositionName = '';
     this.newPositionCount = 1;
   }
 
-  removePosition(tempId: number): void {
-    this.positions.update((positions) => positions.filter((p) => p.tempId !== tempId));
+  removeSlot(positionTempId: number, slotTempId: number): void {
+    this.positions.update((positions) =>
+      positions
+        .map((p) => (p.tempId === positionTempId ? { ...p, slots: p.slots.filter((s) => s.tempId !== slotTempId) } : p))
+        .filter((p) => p.slots.length > 0)
+    );
   }
 
-  onDragEnded(event: CdkDragEnd<unknown>, position: WorkingPosition): void {
-    const container = this.fieldContainerRef.nativeElement;
-    const rect = container.getBoundingClientRect();
-    const distance = event.distance;
+  isCellOccupied(row: number, col: number): boolean {
+    return this.cellAt(row, col) !== null;
+  }
 
-    const currentXPx = (position.xPosition / 100) * rect.width;
-    const currentYPx = (position.yPosition / 100) * rect.height;
+  canEnterCell = (row: number, col: number) => (): boolean => !this.isCellOccupied(row, col);
 
-    const newXPercent = this.clamp(((currentXPx + distance.x) / rect.width) * 100, 0, 100);
-    const newYPercent = this.clamp(((currentYPx + distance.y) / rect.height) * 100, 0, 100);
+  onCellDrop(event: CdkDragDrop<CellRef | null>, row: number, col: number): void {
+    const dragged = event.item.data as CellRef;
+    if (!dragged || this.isCellOccupied(row, col)) {
+      return;
+    }
 
     this.positions.update((positions) =>
-      positions.map((p) => (p.tempId === position.tempId ? { ...p, xPosition: newXPercent, yPosition: newYPercent } : p))
+      positions.map((p) =>
+        p.tempId === dragged.position.tempId
+          ? { ...p, slots: p.slots.map((s) => (s.tempId === dragged.slot.tempId ? { ...s, rowIndex: row, colIndex: col } : s)) }
+          : p
+      )
     );
+  }
 
-    event.source.reset();
+  private findFreeRotationSlots(count: number): number[] {
+    const found: number[] = [];
+    for (let col = 0; col < this.rotationCount() && found.length < count; col++) {
+      if (!this.isCellOccupied(ROTATION_ROW, col)) {
+        found.push(col);
+      }
+    }
+    return found;
   }
 
   toggleScoringRuleForm(): void {
@@ -186,11 +258,11 @@ export class FieldBuilderComponent implements OnInit {
     const request = {
       name: this.domain.name,
       description: this.domain.description ?? undefined,
+      fieldRows: this.fieldRows(),
+      fieldCols: this.fieldCols(),
       positions: this.positions().map((p) => ({
         name: p.name,
-        playerCount: p.playerCount,
-        xPosition: p.xPosition,
-        yPosition: p.yPosition
+        slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
       })),
       scoringRules: this.scoringRules().map((r) => ({
         name: r.name,
@@ -209,9 +281,5 @@ export class FieldBuilderComponent implements OnInit {
 
   cancel(): void {
     this.router.navigateByUrl('/domains');
-  }
-
-  private clamp(value: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, value));
   }
 }

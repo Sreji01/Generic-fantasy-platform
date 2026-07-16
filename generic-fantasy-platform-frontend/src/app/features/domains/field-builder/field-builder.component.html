@@ -8,43 +8,107 @@
 </mat-toolbar>
 
 <div class="content">
-  <form class="add-form" (ngSubmit)="addPosition()">
-    <mat-form-field appearance="outline">
-      <mat-label>Position name</mat-label>
-      <input matInput name="positionName" [(ngModel)]="newPositionName" placeholder="e.g. GK" />
-    </mat-form-field>
+  <div class="toolbars-row">
+    <form class="add-form" (ngSubmit)="addPosition()">
+      <mat-form-field appearance="outline" class="position-name-field">
+        <mat-label>Position name</mat-label>
+        <input matInput name="positionName" [(ngModel)]="newPositionName" placeholder="e.g. GK" />
+      </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Player count</mat-label>
-      <input matInput type="number" name="positionCount" [(ngModel)]="newPositionCount" min="1" />
-    </mat-form-field>
+      <mat-form-field appearance="outline" class="points-field">
+        <mat-label>Player count</mat-label>
+        <input matInput type="number" name="positionCount" [(ngModel)]="newPositionCount" min="1" />
+      </mat-form-field>
 
-    <button mat-flat-button color="primary" type="submit">
-      <mat-icon>add</mat-icon>
-      Add Position
-    </button>
-  </form>
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>add</mat-icon>
+        Add Position
+      </button>
+    </form>
 
-  <div class="field" #fieldContainer>
-    @for (position of positions(); track position.tempId) {
-      <div
-        class="position-pill"
-        cdkDrag
-        [cdkDragBoundary]="fieldContainer"
-        [style.left.%]="position.xPosition"
-        [style.top.%]="position.yPosition"
-        (cdkDragEnded)="onDragEnded($event, position)"
-      >
-        <span>{{ position.name }} ({{ position.playerCount }})</span>
-        <button mat-icon-button (click)="removePosition(position.tempId)" aria-label="Remove position">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-    }
+    <form class="add-form" (ngSubmit)="applyFieldSize()">
+      <mat-form-field appearance="outline" class="points-field">
+        <mat-label>Width</mat-label>
+        <input matInput type="number" name="fieldWidth" [(ngModel)]="fieldColsInput" min="1" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="points-field">
+        <mat-label>Height</mat-label>
+        <input matInput type="number" name="fieldHeight" [(ngModel)]="fieldRowsInput" min="1" />
+      </mat-form-field>
+
+      <button mat-flat-button type="submit">Apply Size</button>
+    </form>
+  </div>
+
+  <div cdkDropListGroup class="field-area">
+    <div
+      class="grid-field"
+      [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
+      [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
+    >
+      @for (row of gridRows(); track row) {
+        @for (col of gridCols(); track col) {
+          <div
+            class="grid-cell"
+            cdkDropList
+            [id]="cellId(row, col)"
+            [cdkDropListEnterPredicate]="canEnterCell(row, col)"
+            (cdkDropListDropped)="onCellDrop($event, row, col)"
+          >
+            @if (cellAt(row, col); as cell) {
+              <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+                <mat-icon class="player-icon">account_circle</mat-icon>
+                <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+                <button
+                  mat-icon-button
+                  class="remove-btn"
+                  (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
+                  aria-label="Remove player"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-card>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <div
+      class="rotation"
+      [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
+      [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
+    >
+      @for (col of rotationSlots(); track col) {
+        <div
+          class="grid-cell rotation-cell"
+          cdkDropList
+          [id]="cellId(-1, col)"
+          [cdkDropListEnterPredicate]="canEnterCell(-1, col)"
+          (cdkDropListDropped)="onCellDrop($event, -1, col)"
+        >
+          @if (cellAt(-1, col); as cell) {
+            <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+              <mat-icon class="player-icon">account_circle</mat-icon>
+              <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+              <button
+                mat-icon-button
+                class="remove-btn"
+                (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
+                aria-label="Remove player"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-card>
+          }
+        </div>
+      }
+    </div>
   </div>
 
   @if (positions().length === 0) {
-    <p class="empty-state">No positions yet. Add one above, then drag it onto the field.</p>
+    <p class="empty-state">No positions yet. Add one above — players will appear in the rotation.</p>
   }
 
   <div class="scoring-rules-section">
@@ -58,7 +122,7 @@
 
     @if (showScoringRuleForm) {
       <form class="add-form" (ngSubmit)="confirmScoringRule()">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="description-field">
           <mat-label>Description</mat-label>
           <input matInput name="ruleName" [(ngModel)]="ruleFormName" placeholder="e.g. goal" />
         </mat-form-field>
