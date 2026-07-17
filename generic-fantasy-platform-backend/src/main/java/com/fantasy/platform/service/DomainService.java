@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class DomainService {
 
     private final DomainRepository domainRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     public DomainResponse create(DomainRequest request, Long userId) {
         User currentUser = findUserOrThrow(userId);
@@ -73,6 +75,15 @@ public class DomainService {
         domain.getScoringRules().clear();
         domain.getScoringRules().addAll(buildScoringRules(request.scoringRules(), domain));
 
+        domainRepository.save(domain);
+        return toResponse(domain);
+    }
+
+    public DomainResponse uploadBackgroundImage(Long id, MultipartFile file, Long userId) {
+        Domain domain = findDomainOrThrow(id);
+        requireOwnerOrAdmin(domain, userId);
+
+        domain.setBackgroundImageUrl(fileStorageService.storeDomainBackgroundImage(id, file));
         domainRepository.save(domain);
         return toResponse(domain);
     }
