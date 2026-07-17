@@ -12,6 +12,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { DomainService } from '../../../core/services/domain.service';
 import { DomainResponse } from '../../../core/models/domain.model';
+import { environment } from '../../../../environments/environment';
 
 const ROTATION_ROW = -1;
 const CELL_SIZE = 60;
@@ -82,6 +83,10 @@ export class FieldBuilderComponent implements OnInit {
 
   readonly domainName = signal('');
   readonly backgroundImageUrl = signal<string | null>(null);
+  readonly backgroundImageDisplayUrl = computed(() => {
+    const url = this.backgroundImageUrl();
+    return url ? `${environment.apiUrl}${url}` : null;
+  });
   readonly positions = signal<WorkingPosition[]>([]);
   readonly scoringRules = signal<WorkingScoringRule[]>([]);
 
@@ -129,14 +134,22 @@ export class FieldBuilderComponent implements OnInit {
   }
 
   onBackgroundImageSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => this.backgroundImageUrl.set(reader.result as string);
-    reader.readAsDataURL(file);
+    this.domainService.uploadBackgroundImage(this.domainId, file).subscribe({
+      next: (domain) => {
+        this.backgroundImageUrl.set(domain.backgroundImageUrl);
+        input.value = '';
+      },
+      error: () => {
+        this.snackBar.open('Failed to upload background image.', 'Close', { duration: 3000 });
+        input.value = '';
+      }
+    });
   }
 
   removeBackgroundImage(): void {

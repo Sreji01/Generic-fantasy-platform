@@ -61,9 +61,10 @@
   <div cdkDropListGroup class="field-area">
     <div
       class="grid-field"
+      [class.has-background]="backgroundImageUrl()"
       [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
       [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
-      [style.background-image]="backgroundImageUrl() ? 'url(' + backgroundImageUrl() + ')' : null"
+      [style.background-image]="backgroundImageDisplayUrl() ? 'url(' + backgroundImageDisplayUrl() + ')' : null"
     >
       @for (row of gridRows(); track row) {
         @for (col of gridCols(); track col) {
