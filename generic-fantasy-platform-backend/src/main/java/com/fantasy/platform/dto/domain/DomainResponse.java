@@ -9,6 +9,8 @@ public record DomainResponse(
         Integer fieldRows,
         Integer fieldCols,
         String backgroundImageUrl,
+        String thumbnailUrl,
+        Integer playerCount,
         List<DomainScoringRuleResponse> scoringRules,
         List<DomainPositionResponse> positions,
         Long createdById,

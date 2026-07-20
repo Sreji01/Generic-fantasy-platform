@@ -44,6 +44,9 @@ public class Domain {
     @Column(name = "background_image_url")
     private String backgroundImageUrl;
 
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)

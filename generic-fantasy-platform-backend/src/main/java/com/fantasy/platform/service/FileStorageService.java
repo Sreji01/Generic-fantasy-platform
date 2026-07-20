@@ -30,6 +30,14 @@ public class FileStorageService {
     }
 
     public String storeDomainBackgroundImage(Long domainId, MultipartFile file) {
+        return storeDomainImage(domainId, file, "background");
+    }
+
+    public String storeDomainThumbnailImage(Long domainId, MultipartFile file) {
+        return storeDomainImage(domainId, file, "thumbnail");
+    }
+
+    private String storeDomainImage(Long domainId, MultipartFile file, String kind) {
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
@@ -41,7 +49,7 @@ public class FileStorageService {
         try {
             Files.createDirectories(domainDir);
             String extension = extensionFor(file.getContentType());
-            String filename = UUID.randomUUID() + extension;
+            String filename = kind + "-" + UUID.randomUUID() + extension;
             Path target = domainDir.resolve(filename);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
             return "/uploads/domains/" + domainId + "/" + filename;

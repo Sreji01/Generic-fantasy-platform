@@ -43,6 +43,7 @@ public class DomainService {
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
         domain.setBackgroundImageUrl(request.backgroundImageUrl());
+        domain.setThumbnailUrl(request.thumbnailUrl());
         domain.setCreatedBy(currentUser);
         domain.setPositions(buildPositions(request.positions(), domain));
         domain.setScoringRules(buildScoringRules(request.scoringRules(), domain));
@@ -68,6 +69,7 @@ public class DomainService {
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
         domain.setBackgroundImageUrl(request.backgroundImageUrl());
+        domain.setThumbnailUrl(request.thumbnailUrl());
 
         domain.getPositions().clear();
         domain.getPositions().addAll(buildPositions(request.positions(), domain));
@@ -84,6 +86,15 @@ public class DomainService {
         requireOwnerOrAdmin(domain, userId);
 
         domain.setBackgroundImageUrl(fileStorageService.storeDomainBackgroundImage(id, file));
+        domainRepository.save(domain);
+        return toResponse(domain);
+    }
+
+    public DomainResponse uploadThumbnailImage(Long id, MultipartFile file, Long userId) {
+        Domain domain = findDomainOrThrow(id);
+        requireOwnerOrAdmin(domain, userId);
+
+        domain.setThumbnailUrl(fileStorageService.storeDomainThumbnailImage(id, file));
         domainRepository.save(domain);
         return toResponse(domain);
     }
@@ -182,6 +193,8 @@ public class DomainService {
                 domain.getFieldRows(),
                 domain.getFieldCols(),
                 domain.getBackgroundImageUrl(),
+                domain.getThumbnailUrl(),
+                domain.getPlayers().size(),
                 scoringRules,
                 positions,
                 domain.getCreatedBy().getId(),

@@ -58,6 +58,13 @@ public class DomainController {
         return ResponseEntity.ok(domainService.uploadBackgroundImage(id, file, principal.getUser().getId()));
     }
 
+    @PostMapping("/{id}/thumbnail-image")
+    public ResponseEntity<DomainResponse> uploadThumbnailImage(@PathVariable Long id,
+                                                                @RequestParam("file") MultipartFile file,
+                                                                @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(domainService.uploadThumbnailImage(id, file, principal.getUser().getId()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id,
                                         @AuthenticationPrincipal UserPrincipal principal) {
