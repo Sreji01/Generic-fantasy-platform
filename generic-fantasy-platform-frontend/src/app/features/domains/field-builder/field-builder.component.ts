@@ -87,6 +87,11 @@ export class FieldBuilderComponent implements OnInit {
     const url = this.backgroundImageUrl();
     return url ? `${environment.apiUrl}${url}` : null;
   });
+  readonly thumbnailUrl = signal<string | null>(null);
+  readonly thumbnailDisplayUrl = computed(() => {
+    const url = this.thumbnailUrl();
+    return url ? `${environment.apiUrl}${url}` : null;
+  });
   readonly positions = signal<WorkingPosition[]>([]);
   readonly scoringRules = signal<WorkingScoringRule[]>([]);
 
@@ -108,6 +113,7 @@ export class FieldBuilderComponent implements OnInit {
       this.fieldRowsInput = domain.fieldRows;
       this.fieldColsInput = domain.fieldCols;
       this.backgroundImageUrl.set(domain.backgroundImageUrl);
+      this.thumbnailUrl.set(domain.thumbnailUrl);
       this.positions.set(
         domain.positions.map((p) => ({
           tempId: this.nextTempId++,
@@ -154,6 +160,29 @@ export class FieldBuilderComponent implements OnInit {
 
   removeBackgroundImage(): void {
     this.backgroundImageUrl.set(null);
+  }
+
+  onThumbnailImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.domainService.uploadThumbnailImage(this.domainId, file).subscribe({
+      next: (domain) => {
+        this.thumbnailUrl.set(domain.thumbnailUrl);
+        input.value = '';
+      },
+      error: () => {
+        this.snackBar.open('Failed to upload thumbnail image.', 'Close', { duration: 3000 });
+        input.value = '';
+      }
+    });
+  }
+
+  removeThumbnailImage(): void {
+    this.thumbnailUrl.set(null);
   }
 
   cellId(row: number, col: number): string {
@@ -291,6 +320,7 @@ export class FieldBuilderComponent implements OnInit {
       fieldRows: this.fieldRows(),
       fieldCols: this.fieldCols(),
       backgroundImageUrl: this.backgroundImageUrl() ?? undefined,
+      thumbnailUrl: this.thumbnailUrl() ?? undefined,
       positions: this.positions().map((p) => ({
         name: p.name,
         slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))

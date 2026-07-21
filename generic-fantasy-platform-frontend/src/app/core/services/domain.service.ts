@@ -32,6 +32,12 @@ export class DomainService {
     return this.http.post<DomainResponse>(`${this.baseUrl}/${id}/background-image`, formData);
   }
 
+  uploadThumbnailImage(id: number, file: File): Observable<DomainResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<DomainResponse>(`${this.baseUrl}/${id}/thumbnail-image`, formData);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

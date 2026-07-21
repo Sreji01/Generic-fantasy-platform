@@ -56,6 +56,24 @@
         <button mat-button type="button" (click)="removeBackgroundImage()">Remove Background</button>
       }
     </div>
+
+    <div class="add-form">
+      <input
+        #thumbnailInput
+        type="file"
+        accept="image/*"
+        hidden
+        (change)="onThumbnailImageSelected($event)"
+      />
+      <button mat-flat-button type="button" (click)="thumbnailInput.click()">
+        <mat-icon>image</mat-icon>
+        Upload Thumbnail
+      </button>
+      @if (thumbnailDisplayUrl(); as url) {
+        <img [src]="url" alt="Thumbnail preview" class="thumbnail-preview" />
+        <button mat-button type="button" (click)="removeThumbnailImage()">Remove Thumbnail</button>
+      }
+    </div>
   </div>
 
   <div cdkDropListGroup class="field-area">
