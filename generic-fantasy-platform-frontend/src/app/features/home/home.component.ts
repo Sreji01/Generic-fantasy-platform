@@ -4,11 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { AuthService } from '../../core/services/auth.service';
+import { PopularDomainsComponent } from './popular-domains/popular-domains.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatButtonModule, MatToolbarModule, RouterLink],
+  imports: [MatButtonModule, MatToolbarModule, RouterLink, PopularDomainsComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
