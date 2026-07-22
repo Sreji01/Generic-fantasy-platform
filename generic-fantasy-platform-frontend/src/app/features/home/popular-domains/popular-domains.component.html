@@ -1,23 +1,4 @@
 <section class="popular-domains">
   <h2 class="section-title">Popular Domains</h2>
-
-  @if (domains().length > 0) {
-    <div class="track-viewport">
-      <div class="track" [style.animation-duration]="trackDuration()">
-        @for (domain of loopDomains(); track $index) {
-          <div class="poster" (click)="openDomain(domain)">
-            @if (posterUrl(domain); as url) {
-              <img [src]="url" [alt]="domain.name" class="poster-image" />
-            } @else {
-              <div class="poster-placeholder">{{ domain.name.charAt(0) }}</div>
-            }
-            <div class="poster-scrim"></div>
-            <span class="poster-name">{{ domain.name }}</span>
-          </div>
-        }
-      </div>
-    </div>
-  } @else {
-    <p class="empty-state">No domains yet.</p>
-  }
+  <app-domain-carousel [domains]="popularDomains()" [alwaysScroll]="true" emptyMessage="No domains yet." />
 </section>
