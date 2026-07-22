@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -10,8 +10,9 @@ export class LeagueService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/leagues`;
 
-  getAll(): Observable<LeagueResponse[]> {
-    return this.http.get<LeagueResponse[]>(this.baseUrl);
+  getAll(domainId?: number): Observable<LeagueResponse[]> {
+    const params = domainId !== undefined ? new HttpParams().set('domainId', domainId) : undefined;
+    return this.http.get<LeagueResponse[]>(this.baseUrl, { params });
   }
 
   getById(id: number): Observable<LeagueResponse> {

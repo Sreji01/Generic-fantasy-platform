@@ -1,0 +1,53 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Back to home">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>{{ domain()?.name }}</span>
+  <span class="spacer"></span>
+  @if (canManage()) {
+    <button mat-flat-button (click)="manageField()">
+      <mat-icon>grid_on</mat-icon>
+      Manage Field
+    </button>
+    <button mat-icon-button (click)="openEditDialog()" aria-label="Edit domain">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button (click)="deleteDomain()" aria-label="Delete domain">
+      <mat-icon>delete</mat-icon>
+    </button>
+  }
+</mat-toolbar>
+
+@if (domain(); as domain) {
+  <div class="content">
+    @if (thumbnailDisplayUrl(); as url) {
+      <img [src]="url" [alt]="domain.name" class="banner" />
+    }
+
+    @if (domain.description) {
+      <p class="description">{{ domain.description }}</p>
+    }
+
+    <div class="leagues-header">
+      <h3>Popular Leagues</h3>
+      <button mat-flat-button color="primary" type="button" (click)="openCreateLeagueDialog()">
+        <mat-icon>add</mat-icon>
+        Create League
+      </button>
+    </div>
+
+    @if (popularLeagues().length > 0) {
+      <ul class="leagues-list">
+        @for (league of popularLeagues(); track league.id) {
+          <li>
+            <span class="league-name">{{ league.name }}</span>
+            <span class="league-status">{{ league.status }}</span>
+            <span class="league-participants">{{ league.participantCount }} participants</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-state">No leagues yet. Create one to get started.</p>
+    }
+  </div>
+}

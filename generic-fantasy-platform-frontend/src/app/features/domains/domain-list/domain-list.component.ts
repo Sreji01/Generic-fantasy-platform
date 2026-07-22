@@ -66,6 +66,10 @@ export class DomainListComponent implements OnInit {
     this.router.navigate(['/domains', domain.id, 'field']);
   }
 
+  openDetails(domain: DomainResponse): void {
+    this.router.navigate(['/domains', domain.id]);
+  }
+
   openEditDialog(domain: DomainResponse): void {
     const ref = this.dialog.open(DomainFormDialogComponent, { data: domain, width: '600px', maxWidth: '600px' });
 

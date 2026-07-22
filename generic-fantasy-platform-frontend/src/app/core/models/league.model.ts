@@ -22,4 +22,5 @@ export interface LeagueResponse {
   status: LeagueStatus;
   maxPlayersPerTeam: number | null;
   budget: number | null;
+  participantCount: number;
 }

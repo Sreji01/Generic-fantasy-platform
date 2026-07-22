@@ -28,9 +28,9 @@ export class LeagueFormDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<LeagueFormDialogComponent>);
   private readonly domainService = inject(DomainService);
-  readonly data = inject<LeagueResponse | null>(MAT_DIALOG_DATA);
+  readonly data = inject<Partial<LeagueResponse> | null>(MAT_DIALOG_DATA);
 
-  readonly isEditMode = this.data !== null;
+  readonly isEditMode = this.data?.id != null;
   readonly domains = signal<DomainResponse[]>([]);
   readonly statuses: LeagueStatus[] = ['UPCOMING', 'ACTIVE', 'FINISHED'];
 

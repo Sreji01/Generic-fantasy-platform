@@ -30,6 +30,9 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let domain">
+        <button mat-icon-button (click)="openDetails(domain)" aria-label="View details">
+          <mat-icon>visibility</mat-icon>
+        </button>
         @if (canModify(domain)) {
           <button mat-icon-button (click)="openFieldBuilder(domain)" aria-label="Configure field">
             <mat-icon>grid_on</mat-icon>
