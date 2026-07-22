@@ -15,6 +15,7 @@ public record LeagueResponse(
         LocalDate endDate,
         LeagueStatus status,
         Integer maxPlayersPerTeam,
-        BigDecimal budget
+        BigDecimal budget,
+        Integer participantCount
 ) {
 }

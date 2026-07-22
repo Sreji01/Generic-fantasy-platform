@@ -105,7 +105,8 @@ public class LeagueService {
                 league.getEndDate(),
                 league.getStatus(),
                 league.getMaxPlayersPerTeam(),
-                league.getBudget()
+                league.getBudget(),
+                league.getFantasyTeams().size()
         );
     }
 }
