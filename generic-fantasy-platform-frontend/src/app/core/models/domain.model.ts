@@ -6,6 +6,8 @@ export interface DomainRequest {
   description?: string;
   fieldRows: number;
   fieldCols: number;
+  benchRows?: number;
+  benchCols?: number;
   backgroundImageUrl?: string;
   thumbnailUrl?: string;
   scoringRules: DomainScoringRuleRequest[];
@@ -18,6 +20,8 @@ export interface DomainResponse {
   description: string | null;
   fieldRows: number;
   fieldCols: number;
+  benchRows: number | null;
+  benchCols: number | null;
   backgroundImageUrl: string | null;
   thumbnailUrl: string | null;
   playerCount: number;

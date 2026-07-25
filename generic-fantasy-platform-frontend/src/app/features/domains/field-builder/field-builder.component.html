@@ -74,26 +74,83 @@
         <button mat-button type="button" (click)="removeThumbnailImage()">Remove Thumbnail</button>
       }
     </div>
+
+    <div class="add-form">
+      @if (!hasBench()) {
+        <button mat-flat-button type="button" (click)="createBench()">
+          <mat-icon>event_seat</mat-icon>
+          Create a Bench
+        </button>
+      } @else {
+        <form class="add-form" (ngSubmit)="applyBenchSize()">
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Bench Width</mat-label>
+            <input matInput type="number" name="benchWidth" [(ngModel)]="benchColsInput" min="1" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Bench Height</mat-label>
+            <input matInput type="number" name="benchHeight" [(ngModel)]="benchRowsInput" min="1" />
+          </mat-form-field>
+
+          <button mat-flat-button type="submit">Apply Bench Size</button>
+          <button mat-button type="button" (click)="removeBench()">Remove Bench</button>
+        </form>
+      }
+    </div>
   </div>
 
-  <div cdkDropListGroup class="field-area">
-    <div
-      class="grid-field"
-      [class.has-background]="backgroundImageUrl()"
-      [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
-      [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
-      [style.background-image]="backgroundImageDisplayUrl() ? 'url(' + backgroundImageDisplayUrl() + ')' : null"
-    >
-      @for (row of gridRows(); track row) {
-        @for (col of gridCols(); track col) {
+  <div cdkDropListGroup>
+    <div class="field-area">
+      <div
+        class="grid-field"
+        [class.has-background]="backgroundImageUrl()"
+        [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
+        [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
+        [style.background-image]="backgroundImageDisplayUrl() ? 'url(' + backgroundImageDisplayUrl() + ')' : null"
+      >
+        @for (row of gridRows(); track row) {
+          @for (col of gridCols(); track col) {
+            <div
+              class="grid-cell"
+              cdkDropList
+              [id]="cellId(row, col)"
+              [cdkDropListEnterPredicate]="canEnterCell(row, col)"
+              (cdkDropListDropped)="onCellDrop($event, row, col)"
+            >
+              @if (cellAt(row, col); as cell) {
+                <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+                  <mat-icon class="player-icon">account_circle</mat-icon>
+                  <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+                  <button
+                    mat-icon-button
+                    class="remove-btn"
+                    (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
+                    aria-label="Remove player"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-card>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <div
+        class="rotation"
+        [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
+        [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
+      >
+        @for (col of rotationSlots(); track col) {
           <div
-            class="grid-cell"
+            class="grid-cell rotation-cell"
             cdkDropList
-            [id]="cellId(row, col)"
-            [cdkDropListEnterPredicate]="canEnterCell(row, col)"
-            (cdkDropListDropped)="onCellDrop($event, row, col)"
+            [id]="cellId(-1, col)"
+            [cdkDropListEnterPredicate]="canEnterCell(-1, col)"
+            (cdkDropListDropped)="onCellDrop($event, -1, col)"
           >
-            @if (cellAt(row, col); as cell) {
+            @if (cellAt(-1, col); as cell) {
               <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
                 <mat-icon class="player-icon">account_circle</mat-icon>
                 <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
@@ -109,39 +166,46 @@
             }
           </div>
         }
-      }
+      </div>
     </div>
 
-    <div
-      class="rotation"
-      [style.grid-template-columns]="'repeat(' + fieldCols() + ', ' + cellSize + 'px)'"
-      [style.grid-template-rows]="'repeat(' + fieldRows() + ', ' + cellSize + 'px)'"
-    >
-      @for (col of rotationSlots(); track col) {
+    @if (hasBench()) {
+      <div class="bench-area">
+        <h4 class="bench-label">Bench</h4>
         <div
-          class="grid-cell rotation-cell"
-          cdkDropList
-          [id]="cellId(-1, col)"
-          [cdkDropListEnterPredicate]="canEnterCell(-1, col)"
-          (cdkDropListDropped)="onCellDrop($event, -1, col)"
+          class="grid-field bench-grid"
+          [style.grid-template-columns]="'repeat(' + benchCols() + ', ' + cellSize + 'px)'"
+          [style.grid-template-rows]="'repeat(' + benchRows() + ', ' + cellSize + 'px)'"
         >
-          @if (cellAt(-1, col); as cell) {
-            <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
-              <mat-icon class="player-icon">account_circle</mat-icon>
-              <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
-              <button
-                mat-icon-button
-                class="remove-btn"
-                (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
-                aria-label="Remove player"
+          @for (row of benchGridRows(); track row) {
+            @for (col of benchGridCols(); track col) {
+              <div
+                class="grid-cell"
+                cdkDropList
+                [id]="cellId(benchRowIndex(row), col)"
+                [cdkDropListEnterPredicate]="canEnterCell(benchRowIndex(row), col)"
+                (cdkDropListDropped)="onCellDrop($event, benchRowIndex(row), col)"
               >
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-card>
+                @if (cellAt(benchRowIndex(row), col); as cell) {
+                  <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+                    <mat-icon class="player-icon">account_circle</mat-icon>
+                    <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+                    <button
+                      mat-icon-button
+                      class="remove-btn"
+                      (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
+                      aria-label="Remove player"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </mat-card>
+                }
+              </div>
+            }
           }
         </div>
-      }
-    </div>
+      </div>
+    }
   </div>
 
   @if (positions().length === 0) {
@@ -158,21 +222,47 @@
     </div>
 
     @if (showScoringRuleForm) {
-      <form class="add-form" (ngSubmit)="confirmScoringRule()">
+      <form class="add-form scoring-rule-form" (ngSubmit)="confirmScoringRule()">
         <mat-form-field appearance="outline" class="description-field">
           <mat-label>Description</mat-label>
           <input matInput name="ruleName" [(ngModel)]="ruleFormName" placeholder="e.g. goal" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="points-field">
-          <mat-label>Points</mat-label>
-          <input matInput type="number" name="rulePoints" [(ngModel)]="ruleFormPoints" />
-        </mat-form-field>
+        <mat-checkbox class="varies-checkbox" name="variesByPosition" [(ngModel)]="ruleFormVariesByPosition">
+          Varies by position
+        </mat-checkbox>
+
+        @if (!ruleFormVariesByPosition) {
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Points</mat-label>
+            <input matInput type="number" name="rulePoints" [(ngModel)]="ruleFormPoints" />
+          </mat-form-field>
+        }
 
         <button mat-flat-button color="primary" type="submit">
           {{ editingRuleTempId !== null ? 'Update' : 'Add' }}
         </button>
         <button mat-button type="button" (click)="toggleScoringRuleForm()">Cancel</button>
+
+        @if (ruleFormVariesByPosition) {
+          <div class="position-points-grid">
+            @if (positions().length === 0) {
+              <p class="empty-state">Add positions to the field first.</p>
+            } @else {
+              @for (position of positions(); track position.tempId) {
+                <mat-form-field appearance="outline" class="points-field">
+                  <mat-label>{{ position.name }}</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    [name]="'positionPoints-' + position.tempId"
+                    [(ngModel)]="ruleFormPositionPoints[position.name]"
+                  />
+                </mat-form-field>
+              }
+            }
+          </div>
+        }
       </form>
     }
 
@@ -180,7 +270,18 @@
       <ul class="scoring-rules-list">
         @for (rule of scoringRules(); track rule.tempId) {
           <li>
-            <span>{{ rule.name }} — {{ rule.points }} pts</span>
+            <span class="rule-info">
+              <span class="rule-name">{{ rule.name }}</span>
+              @if (rule.variesByPosition) {
+                <span class="rule-position-points">
+                  @for (entry of objectEntries(rule.positionPoints); track entry[0]) {
+                    <span class="position-point-chip">{{ entry[0] }}: {{ entry[1] }}</span>
+                  }
+                </span>
+              } @else {
+                <span>{{ rule.points }} pts</span>
+              }
+            </span>
             <span class="rule-actions">
               <button mat-icon-button (click)="editScoringRule(rule)" aria-label="Edit scoring rule">
                 <mat-icon>edit</mat-icon>

@@ -7,11 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 import { DomainRequest, DomainResponse } from '../../../core/models/domain.model';
+import { ScoringRulePositionValue } from '../../../core/models/domain-scoring-rule.model';
 
 interface WorkingScoringRule {
   tempId: number;
   name: string;
+  variesByPosition: boolean;
   points: number;
+  positionValues: ScoringRulePositionValue[];
 }
 
 @Component({
@@ -36,7 +39,13 @@ export class DomainFormDialogComponent {
   });
 
   readonly scoringRules = signal<WorkingScoringRule[]>(
-    (this.data?.scoringRules ?? []).map((r) => ({ tempId: this.nextTempId++, name: r.name, points: r.points }))
+    (this.data?.scoringRules ?? []).map((r) => ({
+      tempId: this.nextTempId++,
+      name: r.name,
+      variesByPosition: r.variesByPosition,
+      points: r.points ?? 0,
+      positionValues: r.positionValues ?? []
+    }))
   );
 
   showScoringRuleForm = false;
@@ -66,12 +75,22 @@ export class DomainFormDialogComponent {
     if (this.editingRuleTempId !== null) {
       const editingId = this.editingRuleTempId;
       this.scoringRules.update((rules) =>
-        rules.map((r) => (r.tempId === editingId ? { ...r, name: this.ruleFormName.trim(), points: this.ruleFormPoints } : r))
+        rules.map((r) =>
+          r.tempId === editingId
+            ? { ...r, name: this.ruleFormName.trim(), points: this.ruleFormPoints, variesByPosition: false, positionValues: [] }
+            : r
+        )
       );
     } else {
       this.scoringRules.update((rules) => [
         ...rules,
-        { tempId: this.nextTempId++, name: this.ruleFormName.trim(), points: this.ruleFormPoints }
+        {
+          tempId: this.nextTempId++,
+          name: this.ruleFormName.trim(),
+          points: this.ruleFormPoints,
+          variesByPosition: false,
+          positionValues: []
+        }
       ]);
     }
 
@@ -103,13 +122,19 @@ export class DomainFormDialogComponent {
       description: raw.description || undefined,
       fieldRows: this.data?.fieldRows ?? 5,
       fieldCols: this.data?.fieldCols ?? 5,
+      benchRows: this.data?.benchRows ?? undefined,
+      benchCols: this.data?.benchCols ?? undefined,
+      backgroundImageUrl: this.data?.backgroundImageUrl ?? undefined,
+      thumbnailUrl: this.data?.thumbnailUrl ?? undefined,
       positions: (this.data?.positions ?? []).map((p) => ({
         name: p.name,
         slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
       })),
       scoringRules: this.scoringRules().map((r) => ({
         name: r.name,
-        points: r.points
+        variesByPosition: r.variesByPosition,
+        points: r.variesByPosition ? undefined : r.points,
+        positionValues: r.positionValues
       }))
     };
 

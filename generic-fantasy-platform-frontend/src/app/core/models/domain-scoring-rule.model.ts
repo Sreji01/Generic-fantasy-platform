@@ -1,6 +1,13 @@
+export interface ScoringRulePositionValue {
+  positionName: string;
+  points: number;
+}
+
 export interface DomainScoringRuleRequest {
   name: string;
-  points: number;
+  variesByPosition: boolean;
+  points?: number;
+  positionValues: ScoringRulePositionValue[];
 }
 
 export interface DomainScoringRuleResponse extends DomainScoringRuleRequest {

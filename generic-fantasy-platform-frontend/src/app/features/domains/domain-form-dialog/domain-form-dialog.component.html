@@ -47,7 +47,7 @@
         <ul class="scoring-rules-list">
           @for (rule of scoringRules(); track rule.tempId) {
             <li>
-              <span>{{ rule.name }} — {{ rule.points }} pts</span>
+              <span>{{ rule.name }} — {{ rule.variesByPosition ? 'varies by position' : rule.points + ' pts' }}</span>
               <span class="rule-actions">
                 <button mat-icon-button type="button" (click)="editScoringRule(rule)" aria-label="Edit scoring rule">
                   <mat-icon>edit</mat-icon>

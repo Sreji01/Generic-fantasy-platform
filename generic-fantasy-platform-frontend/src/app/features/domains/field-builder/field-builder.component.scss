@@ -23,6 +23,25 @@
   }
 }
 
+.scoring-rule-form {
+  flex-wrap: wrap;
+
+  .varies-checkbox {
+    margin-top: 4px;
+  }
+}
+
+.position-points-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+
+  .points-field {
+    max-width: 120px;
+  }
+}
+
 .position-name-field,
 .points-field {
   max-width: 150px;
@@ -147,6 +166,18 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+.bench-area {
+  margin-top: 8px;
+}
+
+.bench-label {
+  margin: 0 0 8px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .scoring-rules-section {
   max-width: 600px;
   margin-top: 8px;
@@ -180,4 +211,28 @@
 .rule-actions {
   display: flex;
   gap: 4px;
+}
+
+.rule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-name {
+  font-weight: 500;
+}
+
+.rule-position-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.position-point-chip {
+  background: rgba(103, 80, 164, 0.1);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  color: #6750a4;
 }

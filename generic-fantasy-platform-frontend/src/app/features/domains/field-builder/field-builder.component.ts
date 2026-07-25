@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +16,7 @@ import { DomainResponse } from '../../../core/models/domain.model';
 import { environment } from '../../../../environments/environment';
 
 const ROTATION_ROW = -1;
+const BENCH_ROW_OFFSET = -2;
 const CELL_SIZE = 60;
 const DEFAULT_FIELD_SIZE = 5;
 
@@ -33,7 +35,9 @@ interface WorkingPosition {
 interface WorkingScoringRule {
   tempId: number;
   name: string;
+  variesByPosition: boolean;
   points: number;
+  positionPoints: Record<string, number>;
 }
 
 interface CellRef {
@@ -52,6 +56,7 @@ interface CellRef {
     DragDropModule,
     MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -81,6 +86,15 @@ export class FieldBuilderComponent implements OnInit {
   fieldRowsInput = DEFAULT_FIELD_SIZE;
   fieldColsInput = DEFAULT_FIELD_SIZE;
 
+  readonly benchRows = signal<number | null>(null);
+  readonly benchCols = signal<number | null>(null);
+  readonly hasBench = computed(() => this.benchRows() !== null && this.benchCols() !== null);
+  readonly benchGridRows = computed(() => Array.from({ length: this.benchRows() ?? 0 }, (_, i) => i));
+  readonly benchGridCols = computed(() => Array.from({ length: this.benchCols() ?? 0 }, (_, i) => i));
+
+  benchRowsInput = 1;
+  benchColsInput = DEFAULT_FIELD_SIZE;
+
   readonly domainName = signal('');
   readonly backgroundImageUrl = signal<string | null>(null);
   readonly backgroundImageDisplayUrl = computed(() => {
@@ -101,7 +115,9 @@ export class FieldBuilderComponent implements OnInit {
   showScoringRuleForm = false;
   editingRuleTempId: number | null = null;
   ruleFormName = '';
+  ruleFormVariesByPosition = false;
   ruleFormPoints = 0;
+  ruleFormPositionPoints: Record<string, number> = {};
 
   ngOnInit(): void {
     this.domainId = Number(this.route.snapshot.paramMap.get('id'));
@@ -112,6 +128,10 @@ export class FieldBuilderComponent implements OnInit {
       this.fieldCols.set(domain.fieldCols);
       this.fieldRowsInput = domain.fieldRows;
       this.fieldColsInput = domain.fieldCols;
+      this.benchRows.set(domain.benchRows);
+      this.benchCols.set(domain.benchCols);
+      this.benchRowsInput = domain.benchRows ?? 1;
+      this.benchColsInput = domain.benchCols ?? domain.fieldCols;
       this.backgroundImageUrl.set(domain.backgroundImageUrl);
       this.thumbnailUrl.set(domain.thumbnailUrl);
       this.positions.set(
@@ -125,7 +145,9 @@ export class FieldBuilderComponent implements OnInit {
         domain.scoringRules.map((r) => ({
           tempId: this.nextTempId++,
           name: r.name,
-          points: r.points
+          variesByPosition: r.variesByPosition,
+          points: r.points ?? 0,
+          positionPoints: Object.fromEntries((r.positionValues ?? []).map((v) => [v.positionName, v.points]))
         }))
       );
     });
@@ -137,6 +159,30 @@ export class FieldBuilderComponent implements OnInit {
     }
     this.fieldRows.set(this.fieldRowsInput);
     this.fieldCols.set(this.fieldColsInput);
+  }
+
+  createBench(): void {
+    this.benchRowsInput = 1;
+    this.benchColsInput = this.fieldCols();
+    this.benchRows.set(this.benchRowsInput);
+    this.benchCols.set(this.benchColsInput);
+  }
+
+  applyBenchSize(): void {
+    if (this.benchRowsInput < 1 || this.benchColsInput < 1) {
+      return;
+    }
+    this.benchRows.set(this.benchRowsInput);
+    this.benchCols.set(this.benchColsInput);
+  }
+
+  removeBench(): void {
+    this.benchRows.set(null);
+    this.benchCols.set(null);
+  }
+
+  benchRowIndex(benchRow: number): number {
+    return BENCH_ROW_OFFSET - benchRow;
   }
 
   onBackgroundImageSelected(event: Event): void {
@@ -266,6 +312,8 @@ export class FieldBuilderComponent implements OnInit {
     this.showScoringRuleForm = !this.showScoringRuleForm;
     if (!this.showScoringRuleForm) {
       this.resetRuleForm();
+    } else if (this.editingRuleTempId === null) {
+      this.ruleFormPositionPoints = this.buildDefaultPositionPoints();
     }
   }
 
@@ -273,7 +321,9 @@ export class FieldBuilderComponent implements OnInit {
     this.showScoringRuleForm = true;
     this.editingRuleTempId = rule.tempId;
     this.ruleFormName = rule.name;
+    this.ruleFormVariesByPosition = rule.variesByPosition;
     this.ruleFormPoints = rule.points;
+    this.ruleFormPositionPoints = { ...this.buildDefaultPositionPoints(), ...rule.positionPoints };
   }
 
   confirmScoringRule(): void {
@@ -281,16 +331,18 @@ export class FieldBuilderComponent implements OnInit {
       return;
     }
 
+    const ruleData = {
+      name: this.ruleFormName.trim(),
+      variesByPosition: this.ruleFormVariesByPosition,
+      points: this.ruleFormPoints,
+      positionPoints: { ...this.ruleFormPositionPoints }
+    };
+
     if (this.editingRuleTempId !== null) {
       const editingId = this.editingRuleTempId;
-      this.scoringRules.update((rules) =>
-        rules.map((r) => (r.tempId === editingId ? { ...r, name: this.ruleFormName.trim(), points: this.ruleFormPoints } : r))
-      );
+      this.scoringRules.update((rules) => rules.map((r) => (r.tempId === editingId ? { ...r, ...ruleData } : r)));
     } else {
-      this.scoringRules.update((rules) => [
-        ...rules,
-        { tempId: this.nextTempId++, name: this.ruleFormName.trim(), points: this.ruleFormPoints }
-      ]);
+      this.scoringRules.update((rules) => [...rules, { tempId: this.nextTempId++, ...ruleData }]);
     }
 
     this.resetRuleForm();
@@ -303,10 +355,24 @@ export class FieldBuilderComponent implements OnInit {
     }
   }
 
+  objectEntries(record: Record<string, number>): [string, number][] {
+    return Object.entries(record);
+  }
+
+  private buildDefaultPositionPoints(): Record<string, number> {
+    const map: Record<string, number> = {};
+    for (const position of this.positions()) {
+      map[position.name] = 0;
+    }
+    return map;
+  }
+
   private resetRuleForm(): void {
     this.editingRuleTempId = null;
     this.ruleFormName = '';
+    this.ruleFormVariesByPosition = false;
     this.ruleFormPoints = 0;
+    this.ruleFormPositionPoints = {};
   }
 
   save(): void {
@@ -319,6 +385,8 @@ export class FieldBuilderComponent implements OnInit {
       description: this.domain.description ?? undefined,
       fieldRows: this.fieldRows(),
       fieldCols: this.fieldCols(),
+      benchRows: this.benchRows() ?? undefined,
+      benchCols: this.benchCols() ?? undefined,
       backgroundImageUrl: this.backgroundImageUrl() ?? undefined,
       thumbnailUrl: this.thumbnailUrl() ?? undefined,
       positions: this.positions().map((p) => ({
@@ -327,7 +395,11 @@ export class FieldBuilderComponent implements OnInit {
       })),
       scoringRules: this.scoringRules().map((r) => ({
         name: r.name,
-        points: r.points
+        variesByPosition: r.variesByPosition,
+        points: r.variesByPosition ? undefined : r.points,
+        positionValues: r.variesByPosition
+          ? Object.entries(r.positionPoints).map(([positionName, points]) => ({ positionName, points }))
+          : []
       }))
     };
 
