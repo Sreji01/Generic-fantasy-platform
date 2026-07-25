@@ -12,6 +12,8 @@ public record DomainRequest(
         String description,
         @NotNull @Min(1) Integer fieldRows,
         @NotNull @Min(1) Integer fieldCols,
+        @Min(1) Integer benchRows,
+        @Min(1) Integer benchCols,
         String backgroundImageUrl,
         String thumbnailUrl,
         @Valid List<DomainScoringRuleRequest> scoringRules,

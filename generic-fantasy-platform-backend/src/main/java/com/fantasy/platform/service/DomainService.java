@@ -8,10 +8,13 @@ import com.fantasy.platform.dto.domain.DomainScoringRuleRequest;
 import com.fantasy.platform.dto.domain.DomainScoringRuleResponse;
 import com.fantasy.platform.dto.domain.PositionSlotRequest;
 import com.fantasy.platform.dto.domain.PositionSlotResponse;
+import com.fantasy.platform.dto.domain.ScoringRulePositionValueRequest;
+import com.fantasy.platform.dto.domain.ScoringRulePositionValueResponse;
 import com.fantasy.platform.entity.Domain;
 import com.fantasy.platform.entity.DomainPosition;
 import com.fantasy.platform.entity.PositionSlot;
 import com.fantasy.platform.entity.ScoringRule;
+import com.fantasy.platform.entity.ScoringRulePositionValue;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.DomainRepository;
@@ -42,6 +45,8 @@ public class DomainService {
         domain.setDescription(request.description());
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
+        domain.setBenchRows(request.benchRows());
+        domain.setBenchCols(request.benchCols());
         domain.setBackgroundImageUrl(request.backgroundImageUrl());
         domain.setThumbnailUrl(request.thumbnailUrl());
         domain.setCreatedBy(currentUser);
@@ -68,6 +73,8 @@ public class DomainService {
         domain.setDescription(request.description());
         domain.setFieldRows(request.fieldRows());
         domain.setFieldCols(request.fieldCols());
+        domain.setBenchRows(request.benchRows());
+        domain.setBenchCols(request.benchCols());
         domain.setBackgroundImageUrl(request.backgroundImageUrl());
         domain.setThumbnailUrl(request.thumbnailUrl());
 
@@ -164,11 +171,40 @@ public class DomainService {
         for (DomainScoringRuleRequest request : requests) {
             ScoringRule rule = new ScoringRule();
             rule.setName(request.name());
-            rule.setPoints(request.points());
             rule.setDomain(domain);
+            rule.setVariesByPosition(request.variesByPosition());
+
+            if (request.variesByPosition()) {
+                if (request.positionValues() == null || request.positionValues().isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Scoring rule '" + request.name() + "' must define points for at least one position");
+                }
+                rule.setPoints(0.0);
+                rule.setPositionValues(buildScoringRulePositionValues(request.positionValues(), rule));
+            } else {
+                if (request.points() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Scoring rule '" + request.name() + "' must define points");
+                }
+                rule.setPoints(request.points());
+            }
+
             rules.add(rule);
         }
         return rules;
+    }
+
+    private List<ScoringRulePositionValue> buildScoringRulePositionValues(List<ScoringRulePositionValueRequest> requests,
+                                                                           ScoringRule rule) {
+        List<ScoringRulePositionValue> values = new ArrayList<>();
+        for (ScoringRulePositionValueRequest request : requests) {
+            ScoringRulePositionValue value = new ScoringRulePositionValue();
+            value.setPositionName(request.positionName());
+            value.setPoints(request.points());
+            value.setScoringRule(rule);
+            values.add(value);
+        }
+        return values;
     }
 
     private DomainResponse toResponse(Domain domain) {
@@ -183,7 +219,15 @@ public class DomainService {
                 .toList();
 
         List<DomainScoringRuleResponse> scoringRules = domain.getScoringRules().stream()
-                .map(r -> new DomainScoringRuleResponse(r.getId(), r.getName(), r.getPoints()))
+                .map(r -> new DomainScoringRuleResponse(
+                        r.getId(),
+                        r.getName(),
+                        Boolean.TRUE.equals(r.getVariesByPosition()),
+                        r.getPoints(),
+                        r.getPositionValues().stream()
+                                .map(v -> new ScoringRulePositionValueResponse(v.getPositionName(), v.getPoints()))
+                                .toList()
+                ))
                 .toList();
 
         return new DomainResponse(
@@ -192,6 +236,8 @@ public class DomainService {
                 domain.getDescription(),
                 domain.getFieldRows(),
                 domain.getFieldCols(),
+                domain.getBenchRows(),
+                domain.getBenchCols(),
                 domain.getBackgroundImageUrl(),
                 domain.getThumbnailUrl(),
                 domain.getPlayers().size(),

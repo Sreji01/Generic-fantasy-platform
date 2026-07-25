@@ -8,6 +8,8 @@ public record DomainResponse(
         String description,
         Integer fieldRows,
         Integer fieldCols,
+        Integer benchRows,
+        Integer benchCols,
         String backgroundImageUrl,
         String thumbnailUrl,
         Integer playerCount,

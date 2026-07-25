@@ -1,8 +1,12 @@
 package com.fantasy.platform.dto.domain;
 
+import java.util.List;
+
 public record DomainScoringRuleResponse(
         Long id,
         String name,
-        Double points
+        boolean variesByPosition,
+        Double points,
+        List<ScoringRulePositionValueResponse> positionValues
 ) {
 }

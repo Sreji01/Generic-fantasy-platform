@@ -41,6 +41,12 @@ public class Domain {
     @Column(name = "field_cols", nullable = false, columnDefinition = "INTEGER DEFAULT 10")
     private Integer fieldCols = 10;
 
+    @Column(name = "bench_rows")
+    private Integer benchRows;
+
+    @Column(name = "bench_cols")
+    private Integer benchCols;
+
     @Column(name = "background_image_url")
     private String backgroundImageUrl;
 

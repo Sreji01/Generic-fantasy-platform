@@ -7,6 +7,7 @@ import com.fantasy.platform.entity.Player;
 import com.fantasy.platform.entity.PlayerResult;
 import com.fantasy.platform.entity.Round;
 import com.fantasy.platform.entity.ScoringRule;
+import com.fantasy.platform.entity.ScoringRulePositionValue;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.PlayerRepository;
@@ -87,23 +88,38 @@ public class PlayerResultService {
         result.setPlayer(player);
         result.setRound(round);
         result.setResultsJson(request.resultsJson());
-        result.setPointsEarned(computePointsEarned(round.getDomain(), request));
+        result.setPointsEarned(computePointsEarned(round.getDomain(), player, request));
     }
 
-    private Double computePointsEarned(Domain domain, PlayerResultRequest request) {
+    private Double computePointsEarned(Domain domain, Player player, PlayerResultRequest request) {
         if (request.resultsJson() == null || request.resultsJson().isBlank()) {
             return request.pointsEarned();
         }
 
-        Map<String, Double> rules = domain.getScoringRules().stream()
-                .collect(Collectors.toMap(ScoringRule::getName, ScoringRule::getPoints, (a, b) -> b));
+        Map<String, ScoringRule> rules = domain.getScoringRules().stream()
+                .collect(Collectors.toMap(ScoringRule::getName, r -> r, (a, b) -> b));
         Map<String, Double> stats = parseStatsJson(request.resultsJson());
 
         double total = 0;
         for (Map.Entry<String, Double> stat : stats.entrySet()) {
-            total += stat.getValue() * rules.getOrDefault(stat.getKey(), 0.0);
+            ScoringRule rule = rules.get(stat.getKey());
+            if (rule == null) {
+                continue;
+            }
+            total += stat.getValue() * resolvePoints(rule, player.getPosition());
         }
         return total;
+    }
+
+    private double resolvePoints(ScoringRule rule, String playerPosition) {
+        if (!Boolean.TRUE.equals(rule.getVariesByPosition())) {
+            return rule.getPoints() != null ? rule.getPoints() : 0.0;
+        }
+        return rule.getPositionValues().stream()
+                .filter(v -> v.getPositionName().equals(playerPosition))
+                .map(ScoringRulePositionValue::getPoints)
+                .findFirst()
+                .orElse(0.0);
     }
 
     private Map<String, Double> parseStatsJson(String json) {
