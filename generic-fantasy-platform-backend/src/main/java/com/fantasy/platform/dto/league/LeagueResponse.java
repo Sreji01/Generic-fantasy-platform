@@ -16,6 +16,7 @@ public record LeagueResponse(
         LeagueStatus status,
         Integer maxPlayersPerTeam,
         BigDecimal budget,
-        Integer participantCount
+        Integer participantCount,
+        Boolean isPublic
 ) {
 }

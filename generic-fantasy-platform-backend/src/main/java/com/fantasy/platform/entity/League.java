@@ -59,6 +59,9 @@ public class League {
 
     private BigDecimal budget;
 
+    @Column(name = "is_public", nullable = false)
+    private Boolean isPublic = true;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "league", cascade = CascadeType.ALL, orphanRemoval = true)

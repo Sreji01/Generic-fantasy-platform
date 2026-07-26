@@ -15,6 +15,7 @@ public record LeagueRequest(
         LocalDate endDate,
         @NotNull LeagueStatus status,
         Integer maxPlayersPerTeam,
-        BigDecimal budget
+        BigDecimal budget,
+        Boolean isPublic
 ) {
 }

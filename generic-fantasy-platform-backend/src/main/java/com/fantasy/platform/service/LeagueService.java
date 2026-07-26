@@ -73,6 +73,7 @@ public class LeagueService {
         league.setStatus(request.status());
         league.setMaxPlayersPerTeam(request.maxPlayersPerTeam());
         league.setBudget(request.budget());
+        league.setIsPublic(request.isPublic() != null ? request.isPublic() : true);
     }
 
     private League findLeagueOrThrow(Long id) {
@@ -106,7 +107,8 @@ public class LeagueService {
                 league.getStatus(),
                 league.getMaxPlayersPerTeam(),
                 league.getBudget(),
-                league.getFantasyTeams().size()
+                league.getFantasyTeams().size(),
+                league.getIsPublic()
         );
     }
 }
