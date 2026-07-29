@@ -23,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "domains")
-public class Domain {
+public class FantasyGame {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,13 +55,13 @@ public class Domain {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScoringRule> scoringRules = new ArrayList<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DomainPosition> positions = new ArrayList<>();
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FantasyGamePosition> positions = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -70,16 +70,16 @@ public class Domain {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<League> leagues = new ArrayList<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "domain", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Round> rounds = new ArrayList<>();
 }

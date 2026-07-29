@@ -1,4 +1,4 @@
-package com.fantasy.platform.dto.domain;
+package com.fantasy.platform.dto.fantasygame;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

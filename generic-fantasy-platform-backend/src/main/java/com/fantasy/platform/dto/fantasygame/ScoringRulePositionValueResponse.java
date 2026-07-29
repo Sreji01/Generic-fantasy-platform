@@ -1,4 +1,4 @@
-package com.fantasy.platform.dto.domain;
+package com.fantasy.platform.dto.fantasygame;
 
 public record ScoringRulePositionValueResponse(
         String positionName,

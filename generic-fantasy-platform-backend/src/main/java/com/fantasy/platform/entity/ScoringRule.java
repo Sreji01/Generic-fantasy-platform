@@ -47,5 +47,5 @@ public class ScoringRule {
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private FantasyGame fantasyGame;
 }

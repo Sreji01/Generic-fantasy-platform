@@ -1,8 +1,8 @@
-package com.fantasy.platform.dto.domain;
+package com.fantasy.platform.dto.fantasygame;
 
 import java.util.List;
 
-public record DomainScoringRuleResponse(
+public record FantasyGameScoringRuleResponse(
         Long id,
         String name,
         boolean variesByPosition,

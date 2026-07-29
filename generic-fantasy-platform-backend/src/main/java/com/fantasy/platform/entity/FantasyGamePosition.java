@@ -23,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "domain_positions")
-public class DomainPosition {
+public class FantasyGamePosition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,5 +41,5 @@ public class DomainPosition {
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private FantasyGame fantasyGame;
 }

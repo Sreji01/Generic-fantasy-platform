@@ -1,8 +1,8 @@
-package com.fantasy.platform.dto.domain;
+package com.fantasy.platform.dto.fantasygame;
 
 import java.util.List;
 
-public record DomainResponse(
+public record FantasyGameResponse(
         Long id,
         String name,
         String description,
@@ -13,8 +13,8 @@ public record DomainResponse(
         String backgroundImageUrl,
         String thumbnailUrl,
         Integer playerCount,
-        List<DomainScoringRuleResponse> scoringRules,
-        List<DomainPositionResponse> positions,
+        List<FantasyGameScoringRuleResponse> scoringRules,
+        List<FantasyGamePositionResponse> positions,
         Long createdById,
         String createdByUsername
 ) {

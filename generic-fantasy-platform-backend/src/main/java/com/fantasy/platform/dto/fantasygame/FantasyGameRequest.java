@@ -1,4 +1,4 @@
-package com.fantasy.platform.dto.domain;
+package com.fantasy.platform.dto.fantasygame;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record DomainRequest(
+public record FantasyGameRequest(
         @NotBlank String name,
         String description,
         @NotNull @Min(1) Integer fieldRows,
@@ -16,7 +16,7 @@ public record DomainRequest(
         @Min(1) Integer benchCols,
         String backgroundImageUrl,
         String thumbnailUrl,
-        @Valid List<DomainScoringRuleRequest> scoringRules,
-        @Valid List<DomainPositionRequest> positions
+        @Valid List<FantasyGameScoringRuleRequest> scoringRules,
+        @Valid List<FantasyGamePositionRequest> positions
 ) {
 }

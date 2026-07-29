@@ -1,23 +1,23 @@
 package com.fantasy.platform.service;
 
-import com.fantasy.platform.dto.domain.DomainPositionRequest;
-import com.fantasy.platform.dto.domain.DomainPositionResponse;
-import com.fantasy.platform.dto.domain.DomainRequest;
-import com.fantasy.platform.dto.domain.DomainResponse;
-import com.fantasy.platform.dto.domain.DomainScoringRuleRequest;
-import com.fantasy.platform.dto.domain.DomainScoringRuleResponse;
-import com.fantasy.platform.dto.domain.PositionSlotRequest;
-import com.fantasy.platform.dto.domain.PositionSlotResponse;
-import com.fantasy.platform.dto.domain.ScoringRulePositionValueRequest;
-import com.fantasy.platform.dto.domain.ScoringRulePositionValueResponse;
-import com.fantasy.platform.entity.Domain;
-import com.fantasy.platform.entity.DomainPosition;
+import com.fantasy.platform.dto.fantasygame.FantasyGamePositionRequest;
+import com.fantasy.platform.dto.fantasygame.FantasyGamePositionResponse;
+import com.fantasy.platform.dto.fantasygame.FantasyGameRequest;
+import com.fantasy.platform.dto.fantasygame.FantasyGameResponse;
+import com.fantasy.platform.dto.fantasygame.FantasyGameScoringRuleRequest;
+import com.fantasy.platform.dto.fantasygame.FantasyGameScoringRuleResponse;
+import com.fantasy.platform.dto.fantasygame.PositionSlotRequest;
+import com.fantasy.platform.dto.fantasygame.PositionSlotResponse;
+import com.fantasy.platform.dto.fantasygame.ScoringRulePositionValueRequest;
+import com.fantasy.platform.dto.fantasygame.ScoringRulePositionValueResponse;
+import com.fantasy.platform.entity.FantasyGame;
+import com.fantasy.platform.entity.FantasyGamePosition;
 import com.fantasy.platform.entity.PositionSlot;
 import com.fantasy.platform.entity.ScoringRule;
 import com.fantasy.platform.entity.ScoringRulePositionValue;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
-import com.fantasy.platform.repository.DomainRepository;
+import com.fantasy.platform.repository.FantasyGameRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,90 +31,90 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DomainService {
+public class FantasyGameService {
 
-    private final DomainRepository domainRepository;
+    private final FantasyGameRepository fantasyGameRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
 
-    public DomainResponse create(DomainRequest request, Long userId) {
+    public FantasyGameResponse create(FantasyGameRequest request, Long userId) {
         User currentUser = findUserOrThrow(userId);
 
-        Domain domain = new Domain();
-        domain.setName(request.name());
-        domain.setDescription(request.description());
-        domain.setFieldRows(request.fieldRows());
-        domain.setFieldCols(request.fieldCols());
-        domain.setBenchRows(request.benchRows());
-        domain.setBenchCols(request.benchCols());
-        domain.setBackgroundImageUrl(request.backgroundImageUrl());
-        domain.setThumbnailUrl(request.thumbnailUrl());
-        domain.setCreatedBy(currentUser);
-        domain.setPositions(buildPositions(request.positions(), domain));
-        domain.setScoringRules(buildScoringRules(request.scoringRules(), domain));
+        FantasyGame fantasyGame = new FantasyGame();
+        fantasyGame.setName(request.name());
+        fantasyGame.setDescription(request.description());
+        fantasyGame.setFieldRows(request.fieldRows());
+        fantasyGame.setFieldCols(request.fieldCols());
+        fantasyGame.setBenchRows(request.benchRows());
+        fantasyGame.setBenchCols(request.benchCols());
+        fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
+        fantasyGame.setThumbnailUrl(request.thumbnailUrl());
+        fantasyGame.setCreatedBy(currentUser);
+        fantasyGame.setPositions(buildPositions(request.positions(), fantasyGame));
+        fantasyGame.setScoringRules(buildScoringRules(request.scoringRules(), fantasyGame));
 
-        domainRepository.save(domain);
-        return toResponse(domain);
+        fantasyGameRepository.save(fantasyGame);
+        return toResponse(fantasyGame);
     }
 
-    public List<DomainResponse> getAll() {
-        return domainRepository.findAll().stream().map(this::toResponse).toList();
+    public List<FantasyGameResponse> getAll() {
+        return fantasyGameRepository.findAll().stream().map(this::toResponse).toList();
     }
 
-    public DomainResponse getById(Long id) {
-        return toResponse(findDomainOrThrow(id));
+    public FantasyGameResponse getById(Long id) {
+        return toResponse(findFantasyGameOrThrow(id));
     }
 
-    public DomainResponse update(Long id, DomainRequest request, Long userId) {
-        Domain domain = findDomainOrThrow(id);
-        requireOwnerOrAdmin(domain, userId);
+    public FantasyGameResponse update(Long id, FantasyGameRequest request, Long userId) {
+        FantasyGame fantasyGame = findFantasyGameOrThrow(id);
+        requireOwnerOrAdmin(fantasyGame, userId);
 
-        domain.setName(request.name());
-        domain.setDescription(request.description());
-        domain.setFieldRows(request.fieldRows());
-        domain.setFieldCols(request.fieldCols());
-        domain.setBenchRows(request.benchRows());
-        domain.setBenchCols(request.benchCols());
-        domain.setBackgroundImageUrl(request.backgroundImageUrl());
-        domain.setThumbnailUrl(request.thumbnailUrl());
+        fantasyGame.setName(request.name());
+        fantasyGame.setDescription(request.description());
+        fantasyGame.setFieldRows(request.fieldRows());
+        fantasyGame.setFieldCols(request.fieldCols());
+        fantasyGame.setBenchRows(request.benchRows());
+        fantasyGame.setBenchCols(request.benchCols());
+        fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
+        fantasyGame.setThumbnailUrl(request.thumbnailUrl());
 
-        domain.getPositions().clear();
-        domain.getPositions().addAll(buildPositions(request.positions(), domain));
+        fantasyGame.getPositions().clear();
+        fantasyGame.getPositions().addAll(buildPositions(request.positions(), fantasyGame));
 
-        domain.getScoringRules().clear();
-        domain.getScoringRules().addAll(buildScoringRules(request.scoringRules(), domain));
+        fantasyGame.getScoringRules().clear();
+        fantasyGame.getScoringRules().addAll(buildScoringRules(request.scoringRules(), fantasyGame));
 
-        domainRepository.save(domain);
-        return toResponse(domain);
+        fantasyGameRepository.save(fantasyGame);
+        return toResponse(fantasyGame);
     }
 
-    public DomainResponse uploadBackgroundImage(Long id, MultipartFile file, Long userId) {
-        Domain domain = findDomainOrThrow(id);
-        requireOwnerOrAdmin(domain, userId);
+    public FantasyGameResponse uploadBackgroundImage(Long id, MultipartFile file, Long userId) {
+        FantasyGame fantasyGame = findFantasyGameOrThrow(id);
+        requireOwnerOrAdmin(fantasyGame, userId);
 
-        domain.setBackgroundImageUrl(fileStorageService.storeDomainBackgroundImage(id, file));
-        domainRepository.save(domain);
-        return toResponse(domain);
+        fantasyGame.setBackgroundImageUrl(fileStorageService.storeFantasyGameBackgroundImage(id, file));
+        fantasyGameRepository.save(fantasyGame);
+        return toResponse(fantasyGame);
     }
 
-    public DomainResponse uploadThumbnailImage(Long id, MultipartFile file, Long userId) {
-        Domain domain = findDomainOrThrow(id);
-        requireOwnerOrAdmin(domain, userId);
+    public FantasyGameResponse uploadThumbnailImage(Long id, MultipartFile file, Long userId) {
+        FantasyGame fantasyGame = findFantasyGameOrThrow(id);
+        requireOwnerOrAdmin(fantasyGame, userId);
 
-        domain.setThumbnailUrl(fileStorageService.storeDomainThumbnailImage(id, file));
-        domainRepository.save(domain);
-        return toResponse(domain);
+        fantasyGame.setThumbnailUrl(fileStorageService.storeFantasyGameThumbnailImage(id, file));
+        fantasyGameRepository.save(fantasyGame);
+        return toResponse(fantasyGame);
     }
 
     public void delete(Long id, Long userId) {
-        Domain domain = findDomainOrThrow(id);
-        requireOwnerOrAdmin(domain, userId);
-        domainRepository.delete(domain);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(id);
+        requireOwnerOrAdmin(fantasyGame, userId);
+        fantasyGameRepository.delete(fantasyGame);
     }
 
-    private Domain findDomainOrThrow(Long id) {
-        return domainRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Domain not found"));
+    private FantasyGame findFantasyGameOrThrow(Long id) {
+        return fantasyGameRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FantasyGame not found"));
     }
 
     private User findUserOrThrow(Long userId) {
@@ -122,33 +122,33 @@ public class DomainService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    private void requireOwnerOrAdmin(Domain domain, Long userId) {
+    private void requireOwnerOrAdmin(FantasyGame fantasyGame, Long userId) {
         User currentUser = findUserOrThrow(userId);
 
-        boolean isOwner = domain.getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = fantasyGame.getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can modify this domain");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can modify this fantasyGame");
         }
     }
 
-    private List<DomainPosition> buildPositions(List<DomainPositionRequest> requests, Domain domain) {
+    private List<FantasyGamePosition> buildPositions(List<FantasyGamePositionRequest> requests, FantasyGame fantasyGame) {
         if (requests == null) {
             return new ArrayList<>();
         }
-        List<DomainPosition> positions = new ArrayList<>();
-        for (DomainPositionRequest request : requests) {
-            DomainPosition position = new DomainPosition();
+        List<FantasyGamePosition> positions = new ArrayList<>();
+        for (FantasyGamePositionRequest request : requests) {
+            FantasyGamePosition position = new FantasyGamePosition();
             position.setName(request.name());
-            position.setDomain(domain);
+            position.setFantasyGame(fantasyGame);
             position.setSlots(buildSlots(request.slots(), position));
             positions.add(position);
         }
         return positions;
     }
 
-    private List<PositionSlot> buildSlots(List<PositionSlotRequest> requests, DomainPosition position) {
+    private List<PositionSlot> buildSlots(List<PositionSlotRequest> requests, FantasyGamePosition position) {
         if (requests == null) {
             return new ArrayList<>();
         }
@@ -163,15 +163,15 @@ public class DomainService {
         return slots;
     }
 
-    private List<ScoringRule> buildScoringRules(List<DomainScoringRuleRequest> requests, Domain domain) {
+    private List<ScoringRule> buildScoringRules(List<FantasyGameScoringRuleRequest> requests, FantasyGame fantasyGame) {
         if (requests == null) {
             return new ArrayList<>();
         }
         List<ScoringRule> rules = new ArrayList<>();
-        for (DomainScoringRuleRequest request : requests) {
+        for (FantasyGameScoringRuleRequest request : requests) {
             ScoringRule rule = new ScoringRule();
             rule.setName(request.name());
-            rule.setDomain(domain);
+            rule.setFantasyGame(fantasyGame);
             rule.setVariesByPosition(request.variesByPosition());
 
             if (request.variesByPosition()) {
@@ -207,9 +207,9 @@ public class DomainService {
         return values;
     }
 
-    private DomainResponse toResponse(Domain domain) {
-        List<DomainPositionResponse> positions = domain.getPositions().stream()
-                .map(p -> new DomainPositionResponse(
+    private FantasyGameResponse toResponse(FantasyGame fantasyGame) {
+        List<FantasyGamePositionResponse> positions = fantasyGame.getPositions().stream()
+                .map(p -> new FantasyGamePositionResponse(
                         p.getId(),
                         p.getName(),
                         p.getSlots().stream()
@@ -218,8 +218,8 @@ public class DomainService {
                 ))
                 .toList();
 
-        List<DomainScoringRuleResponse> scoringRules = domain.getScoringRules().stream()
-                .map(r -> new DomainScoringRuleResponse(
+        List<FantasyGameScoringRuleResponse> scoringRules = fantasyGame.getScoringRules().stream()
+                .map(r -> new FantasyGameScoringRuleResponse(
                         r.getId(),
                         r.getName(),
                         Boolean.TRUE.equals(r.getVariesByPosition()),
@@ -230,21 +230,21 @@ public class DomainService {
                 ))
                 .toList();
 
-        return new DomainResponse(
-                domain.getId(),
-                domain.getName(),
-                domain.getDescription(),
-                domain.getFieldRows(),
-                domain.getFieldCols(),
-                domain.getBenchRows(),
-                domain.getBenchCols(),
-                domain.getBackgroundImageUrl(),
-                domain.getThumbnailUrl(),
-                domain.getPlayers().size(),
+        return new FantasyGameResponse(
+                fantasyGame.getId(),
+                fantasyGame.getName(),
+                fantasyGame.getDescription(),
+                fantasyGame.getFieldRows(),
+                fantasyGame.getFieldCols(),
+                fantasyGame.getBenchRows(),
+                fantasyGame.getBenchCols(),
+                fantasyGame.getBackgroundImageUrl(),
+                fantasyGame.getThumbnailUrl(),
+                fantasyGame.getPlayers().size(),
                 scoringRules,
                 positions,
-                domain.getCreatedBy().getId(),
-                domain.getCreatedBy().getUsername()
+                fantasyGame.getCreatedBy().getId(),
+                fantasyGame.getCreatedBy().getUsername()
         );
     }
 }

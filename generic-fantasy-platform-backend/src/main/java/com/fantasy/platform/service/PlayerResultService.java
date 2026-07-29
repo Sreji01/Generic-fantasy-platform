@@ -2,7 +2,7 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.playerresult.PlayerResultRequest;
 import com.fantasy.platform.dto.playerresult.PlayerResultResponse;
-import com.fantasy.platform.entity.Domain;
+import com.fantasy.platform.entity.FantasyGame;
 import com.fantasy.platform.entity.Player;
 import com.fantasy.platform.entity.PlayerResult;
 import com.fantasy.platform.entity.Round;
@@ -39,8 +39,8 @@ public class PlayerResultService {
     public PlayerResultResponse create(PlayerResultRequest request, Long userId) {
         Player player = findPlayerOrThrow(request.playerId());
         Round round = findRoundOrThrow(request.roundId());
-        requireDomainOwnerOrAdmin(round, userId);
-        requireSameDomain(player, round);
+        requireFantasyGameOwnerOrAdmin(round, userId);
+        requireSameFantasyGame(player, round);
 
         PlayerResult result = new PlayerResult();
         applyRequest(result, request, player, round);
@@ -69,8 +69,8 @@ public class PlayerResultService {
         PlayerResult result = findResultOrThrow(id);
         Player player = findPlayerOrThrow(request.playerId());
         Round round = findRoundOrThrow(request.roundId());
-        requireDomainOwnerOrAdmin(round, userId);
-        requireSameDomain(player, round);
+        requireFantasyGameOwnerOrAdmin(round, userId);
+        requireSameFantasyGame(player, round);
 
         applyRequest(result, request, player, round);
 
@@ -80,7 +80,7 @@ public class PlayerResultService {
 
     public void delete(Long id, Long userId) {
         PlayerResult result = findResultOrThrow(id);
-        requireDomainOwnerOrAdmin(result.getRound(), userId);
+        requireFantasyGameOwnerOrAdmin(result.getRound(), userId);
         playerResultRepository.delete(result);
     }
 
@@ -88,15 +88,15 @@ public class PlayerResultService {
         result.setPlayer(player);
         result.setRound(round);
         result.setResultsJson(request.resultsJson());
-        result.setPointsEarned(computePointsEarned(round.getDomain(), player, request));
+        result.setPointsEarned(computePointsEarned(round.getFantasyGame(), player, request));
     }
 
-    private Double computePointsEarned(Domain domain, Player player, PlayerResultRequest request) {
+    private Double computePointsEarned(FantasyGame fantasyGame, Player player, PlayerResultRequest request) {
         if (request.resultsJson() == null || request.resultsJson().isBlank()) {
             return request.pointsEarned();
         }
 
-        Map<String, ScoringRule> rules = domain.getScoringRules().stream()
+        Map<String, ScoringRule> rules = fantasyGame.getScoringRules().stream()
                 .collect(Collectors.toMap(ScoringRule::getName, r -> r, (a, b) -> b));
         Map<String, Double> stats = parseStatsJson(request.resultsJson());
 
@@ -149,21 +149,21 @@ public class PlayerResultService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
     }
 
-    private void requireDomainOwnerOrAdmin(Round round, Long userId) {
+    private void requireFantasyGameOwnerOrAdmin(Round round, Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = round.getDomain().getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = round.getFantasyGame().getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can enter player results");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can enter player results");
         }
     }
 
-    private void requireSameDomain(Player player, Round round) {
-        if (!player.getDomain().getId().equals(round.getDomain().getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Player and round must belong to the same domain");
+    private void requireSameFantasyGame(Player player, Round round) {
+        if (!player.getFantasyGame().getId().equals(round.getFantasyGame().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Player and round must belong to the same fantasyGame");
         }
     }
 

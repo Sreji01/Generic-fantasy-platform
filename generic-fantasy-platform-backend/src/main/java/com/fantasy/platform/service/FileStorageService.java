@@ -29,15 +29,15 @@ public class FileStorageService {
         }
     }
 
-    public String storeDomainBackgroundImage(Long domainId, MultipartFile file) {
-        return storeDomainImage(domainId, file, "background");
+    public String storeFantasyGameBackgroundImage(Long fantasyGameId, MultipartFile file) {
+        return storeFantasyGameImage(fantasyGameId, file, "background");
     }
 
-    public String storeDomainThumbnailImage(Long domainId, MultipartFile file) {
-        return storeDomainImage(domainId, file, "thumbnail");
+    public String storeFantasyGameThumbnailImage(Long fantasyGameId, MultipartFile file) {
+        return storeFantasyGameImage(fantasyGameId, file, "thumbnail");
     }
 
-    private String storeDomainImage(Long domainId, MultipartFile file, String kind) {
+    private String storeFantasyGameImage(Long fantasyGameId, MultipartFile file, String kind) {
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
@@ -45,14 +45,14 @@ public class FileStorageService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PNG, JPEG, WEBP or GIF images are allowed");
         }
 
-        Path domainDir = uploadRoot.resolve("domains").resolve(String.valueOf(domainId)).normalize();
+        Path fantasyGameDir = uploadRoot.resolve("domains").resolve(String.valueOf(fantasyGameId)).normalize();
         try {
-            Files.createDirectories(domainDir);
+            Files.createDirectories(fantasyGameDir);
             String extension = extensionFor(file.getContentType());
             String filename = kind + "-" + UUID.randomUUID() + extension;
-            Path target = domainDir.resolve(filename);
+            Path target = fantasyGameDir.resolve(filename);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return "/uploads/domains/" + domainId + "/" + filename;
+            return "/uploads/domains/" + fantasyGameId + "/" + filename;
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store file", e);
         }

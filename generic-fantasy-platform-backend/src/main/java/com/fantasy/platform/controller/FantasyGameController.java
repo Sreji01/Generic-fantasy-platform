@@ -1,9 +1,9 @@
 package com.fantasy.platform.controller;
 
-import com.fantasy.platform.dto.domain.DomainRequest;
-import com.fantasy.platform.dto.domain.DomainResponse;
+import com.fantasy.platform.dto.fantasygame.FantasyGameRequest;
+import com.fantasy.platform.dto.fantasygame.FantasyGameResponse;
 import com.fantasy.platform.security.UserPrincipal;
-import com.fantasy.platform.service.DomainService;
+import com.fantasy.platform.service.FantasyGameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,53 +22,53 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/domains")
+@RequestMapping("/fantasy-games")
 @RequiredArgsConstructor
-public class DomainController {
+public class FantasyGameController {
 
-    private final DomainService domainService;
+    private final FantasyGameService fantasyGameService;
 
     @PostMapping
-    public ResponseEntity<DomainResponse> create(@Valid @RequestBody DomainRequest request,
+    public ResponseEntity<FantasyGameResponse> create(@Valid @RequestBody FantasyGameRequest request,
                                                   @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(domainService.create(request, principal.getUser().getId()));
+        return ResponseEntity.ok(fantasyGameService.create(request, principal.getUser().getId()));
     }
 
     @GetMapping
-    public ResponseEntity<List<DomainResponse>> getAll() {
-        return ResponseEntity.ok(domainService.getAll());
+    public ResponseEntity<List<FantasyGameResponse>> getAll() {
+        return ResponseEntity.ok(fantasyGameService.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DomainResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(domainService.getById(id));
+    public ResponseEntity<FantasyGameResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(fantasyGameService.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DomainResponse> update(@PathVariable Long id,
-                                                  @Valid @RequestBody DomainRequest request,
+    public ResponseEntity<FantasyGameResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody FantasyGameRequest request,
                                                   @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(domainService.update(id, request, principal.getUser().getId()));
+        return ResponseEntity.ok(fantasyGameService.update(id, request, principal.getUser().getId()));
     }
 
     @PostMapping("/{id}/background-image")
-    public ResponseEntity<DomainResponse> uploadBackgroundImage(@PathVariable Long id,
+    public ResponseEntity<FantasyGameResponse> uploadBackgroundImage(@PathVariable Long id,
                                                                   @RequestParam("file") MultipartFile file,
                                                                   @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(domainService.uploadBackgroundImage(id, file, principal.getUser().getId()));
+        return ResponseEntity.ok(fantasyGameService.uploadBackgroundImage(id, file, principal.getUser().getId()));
     }
 
     @PostMapping("/{id}/thumbnail-image")
-    public ResponseEntity<DomainResponse> uploadThumbnailImage(@PathVariable Long id,
+    public ResponseEntity<FantasyGameResponse> uploadThumbnailImage(@PathVariable Long id,
                                                                 @RequestParam("file") MultipartFile file,
                                                                 @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(domainService.uploadThumbnailImage(id, file, principal.getUser().getId()));
+        return ResponseEntity.ok(fantasyGameService.uploadThumbnailImage(id, file, principal.getUser().getId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id,
                                         @AuthenticationPrincipal UserPrincipal principal) {
-        domainService.delete(id, principal.getUser().getId());
+        fantasyGameService.delete(id, principal.getUser().getId());
         return ResponseEntity.noContent().build();
     }
 }
