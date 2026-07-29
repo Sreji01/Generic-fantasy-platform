@@ -34,5 +34,5 @@ public class PositionSlot {
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id", nullable = false)
-    private DomainPosition position;
+    private FantasyGamePosition position;
 }

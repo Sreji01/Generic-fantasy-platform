@@ -34,9 +34,9 @@ public class RoundController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RoundResponse>> getAll(@RequestParam(required = false) Long domainId) {
-        if (domainId != null) {
-            return ResponseEntity.ok(roundService.getByDomain(domainId));
+    public ResponseEntity<List<RoundResponse>> getAll(@RequestParam(required = false) Long fantasyGameId) {
+        if (fantasyGameId != null) {
+            return ResponseEntity.ok(roundService.getByFantasyGame(fantasyGameId));
         }
         return ResponseEntity.ok(roundService.getAll());
     }

@@ -2,11 +2,11 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.player.PlayerRequest;
 import com.fantasy.platform.dto.player.PlayerResponse;
-import com.fantasy.platform.entity.Domain;
+import com.fantasy.platform.entity.FantasyGame;
 import com.fantasy.platform.entity.Player;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
-import com.fantasy.platform.repository.DomainRepository;
+import com.fantasy.platform.repository.FantasyGameRepository;
 import com.fantasy.platform.repository.PlayerRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,15 @@ import java.util.List;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
-    private final DomainRepository domainRepository;
+    private final FantasyGameRepository fantasyGameRepository;
     private final UserRepository userRepository;
 
     public PlayerResponse create(PlayerRequest request, Long userId) {
-        Domain domain = findDomainOrThrow(request.domainId());
-        requireDomainOwnerOrAdmin(domain, userId);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
+        requireFantasyGameOwnerOrAdmin(fantasyGame, userId);
 
         Player player = new Player();
-        applyRequest(player, request, domain);
+        applyRequest(player, request, fantasyGame);
 
         playerRepository.save(player);
         return toResponse(player);
@@ -40,8 +40,8 @@ public class PlayerService {
         return playerRepository.findAll().stream().map(this::toResponse).toList();
     }
 
-    public List<PlayerResponse> getByDomain(Long domainId) {
-        return playerRepository.findByDomainId(domainId).stream().map(this::toResponse).toList();
+    public List<PlayerResponse> getByFantasyGame(Long fantasyGameId) {
+        return playerRepository.findByFantasyGameId(fantasyGameId).stream().map(this::toResponse).toList();
     }
 
     public PlayerResponse getById(Long id) {
@@ -50,28 +50,28 @@ public class PlayerService {
 
     public PlayerResponse update(Long id, PlayerRequest request, Long userId) {
         Player player = findPlayerOrThrow(id);
-        Domain domain = findDomainOrThrow(request.domainId());
-        requireDomainOwnerOrAdmin(domain, userId);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
+        requireFantasyGameOwnerOrAdmin(fantasyGame, userId);
 
-        applyRequest(player, request, domain);
+        applyRequest(player, request, fantasyGame);
         playerRepository.save(player);
         return toResponse(player);
     }
 
     public void delete(Long id, Long userId) {
         Player player = findPlayerOrThrow(id);
-        requireDomainOwnerOrAdmin(player.getDomain(), userId);
+        requireFantasyGameOwnerOrAdmin(player.getFantasyGame(), userId);
         playerRepository.delete(player);
     }
 
-    private void applyRequest(Player player, PlayerRequest request, Domain domain) {
+    private void applyRequest(Player player, PlayerRequest request, FantasyGame fantasyGame) {
         player.setFirstName(request.firstName());
         player.setLastName(request.lastName());
         player.setPosition(request.position());
         player.setRealTeam(request.realTeam());
         player.setPrice(request.price());
         player.setImageUrl(request.imageUrl());
-        player.setDomain(domain);
+        player.setFantasyGame(fantasyGame);
     }
 
     private Player findPlayerOrThrow(Long id) {
@@ -79,20 +79,20 @@ public class PlayerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found"));
     }
 
-    private Domain findDomainOrThrow(Long id) {
-        return domainRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Domain not found"));
+    private FantasyGame findFantasyGameOrThrow(Long id) {
+        return fantasyGameRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FantasyGame not found"));
     }
 
-    private void requireDomainOwnerOrAdmin(Domain domain, Long userId) {
+    private void requireFantasyGameOwnerOrAdmin(FantasyGame fantasyGame, Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = domain.getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = fantasyGame.getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can manage its players");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can manage its players");
         }
     }
 
@@ -105,7 +105,7 @@ public class PlayerService {
                 player.getRealTeam(),
                 player.getPrice(),
                 player.getImageUrl(),
-                player.getDomain().getId()
+                player.getFantasyGame().getId()
         );
     }
 }

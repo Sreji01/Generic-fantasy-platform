@@ -12,6 +12,6 @@ public record PlayerRequest(
         String realTeam,
         BigDecimal price,
         String imageUrl,
-        @NotNull Long domainId
+        @NotNull Long fantasyGameId
 ) {
 }

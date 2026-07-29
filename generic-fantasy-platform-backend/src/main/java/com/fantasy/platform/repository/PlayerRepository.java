@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface PlayerRepository extends JpaRepository<Player, Long> {
 
-    List<Player> findByDomainId(Long domainId);
+    List<Player> findByFantasyGameId(Long fantasyGameId);
 }

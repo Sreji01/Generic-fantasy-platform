@@ -10,6 +10,6 @@ public record PlayerResponse(
         String realTeam,
         BigDecimal price,
         String imageUrl,
-        Long domainId
+        Long fantasyGameId
 ) {
 }

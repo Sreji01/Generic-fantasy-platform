@@ -2,11 +2,11 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.round.RoundRequest;
 import com.fantasy.platform.dto.round.RoundResponse;
-import com.fantasy.platform.entity.Domain;
+import com.fantasy.platform.entity.FantasyGame;
 import com.fantasy.platform.entity.Round;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
-import com.fantasy.platform.repository.DomainRepository;
+import com.fantasy.platform.repository.FantasyGameRepository;
 import com.fantasy.platform.repository.RoundRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,15 @@ import java.util.List;
 public class RoundService {
 
     private final RoundRepository roundRepository;
-    private final DomainRepository domainRepository;
+    private final FantasyGameRepository fantasyGameRepository;
     private final UserRepository userRepository;
 
     public RoundResponse create(RoundRequest request, Long userId) {
-        Domain domain = findDomainOrThrow(request.domainId());
-        requireDomainOwnerOrAdmin(domain, userId);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
+        requireFantasyGameOwnerOrAdmin(fantasyGame, userId);
 
         Round round = new Round();
-        applyRequest(round, request, domain);
+        applyRequest(round, request, fantasyGame);
 
         roundRepository.save(round);
         return toResponse(round);
@@ -40,8 +40,8 @@ public class RoundService {
         return roundRepository.findAll().stream().map(this::toResponse).toList();
     }
 
-    public List<RoundResponse> getByDomain(Long domainId) {
-        return roundRepository.findByDomainId(domainId).stream().map(this::toResponse).toList();
+    public List<RoundResponse> getByFantasyGame(Long fantasyGameId) {
+        return roundRepository.findByFantasyGameId(fantasyGameId).stream().map(this::toResponse).toList();
     }
 
     public RoundResponse getById(Long id) {
@@ -50,10 +50,10 @@ public class RoundService {
 
     public RoundResponse update(Long id, RoundRequest request, Long userId) {
         Round round = findRoundOrThrow(id);
-        Domain domain = findDomainOrThrow(request.domainId());
-        requireDomainOwnerOrAdmin(domain, userId);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
+        requireFantasyGameOwnerOrAdmin(fantasyGame, userId);
 
-        applyRequest(round, request, domain);
+        applyRequest(round, request, fantasyGame);
 
         roundRepository.save(round);
         return toResponse(round);
@@ -61,14 +61,14 @@ public class RoundService {
 
     public void delete(Long id, Long userId) {
         Round round = findRoundOrThrow(id);
-        requireDomainOwnerOrAdmin(round.getDomain(), userId);
+        requireFantasyGameOwnerOrAdmin(round.getFantasyGame(), userId);
         roundRepository.delete(round);
     }
 
-    private void applyRequest(Round round, RoundRequest request, Domain domain) {
+    private void applyRequest(Round round, RoundRequest request, FantasyGame fantasyGame) {
         round.setName(request.name());
         round.setRoundNumber(request.roundNumber());
-        round.setDomain(domain);
+        round.setFantasyGame(fantasyGame);
         round.setStartDate(request.startDate());
         round.setEndDate(request.endDate());
         round.setStatus(request.status());
@@ -79,20 +79,20 @@ public class RoundService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
     }
 
-    private Domain findDomainOrThrow(Long id) {
-        return domainRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Domain not found"));
+    private FantasyGame findFantasyGameOrThrow(Long id) {
+        return fantasyGameRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FantasyGame not found"));
     }
 
-    private void requireDomainOwnerOrAdmin(Domain domain, Long userId) {
+    private void requireFantasyGameOwnerOrAdmin(FantasyGame fantasyGame, Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = domain.getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = fantasyGame.getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can manage its rounds");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can manage its rounds");
         }
     }
 
@@ -101,8 +101,8 @@ public class RoundService {
                 round.getId(),
                 round.getName(),
                 round.getRoundNumber(),
-                round.getDomain().getId(),
-                round.getDomain().getName(),
+                round.getFantasyGame().getId(),
+                round.getFantasyGame().getName(),
                 round.getStartDate(),
                 round.getEndDate(),
                 round.getStatus()

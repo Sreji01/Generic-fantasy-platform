@@ -112,10 +112,10 @@ public class FantasyTeamService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more players not found");
         }
 
-        boolean allInDomain = players.stream()
-                .allMatch(p -> p.getDomain().getId().equals(league.getDomain().getId()));
-        if (!allInDomain) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "All players must belong to the league's domain");
+        boolean allInFantasyGame = players.stream()
+                .allMatch(p -> p.getFantasyGame().getId().equals(league.getFantasyGame().getId()));
+        if (!allInFantasyGame) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "All players must belong to the league's fantasyGame");
         }
 
         if (league.getMaxPlayersPerTeam() != null && players.size() > league.getMaxPlayersPerTeam()) {

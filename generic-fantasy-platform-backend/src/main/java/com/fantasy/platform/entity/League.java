@@ -42,7 +42,7 @@ public class League {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private FantasyGame fantasyGame;
 
     @Column(name = "start_date")
     private LocalDate startDate;

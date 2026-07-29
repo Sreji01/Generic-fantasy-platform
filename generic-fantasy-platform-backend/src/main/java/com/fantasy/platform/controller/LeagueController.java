@@ -33,9 +33,9 @@ public class LeagueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LeagueResponse>> getAll(@RequestParam(required = false) Long domainId) {
-        if (domainId != null) {
-            return ResponseEntity.ok(leagueService.getByDomain(domainId));
+    public ResponseEntity<List<LeagueResponse>> getAll(@RequestParam(required = false) Long fantasyGameId) {
+        if (fantasyGameId != null) {
+            return ResponseEntity.ok(leagueService.getByFantasyGame(fantasyGameId));
         }
         return ResponseEntity.ok(leagueService.getAll());
     }

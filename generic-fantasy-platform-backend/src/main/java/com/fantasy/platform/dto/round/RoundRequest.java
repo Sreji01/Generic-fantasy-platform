@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public record RoundRequest(
         @NotBlank String name,
         @NotNull Integer roundNumber,
-        @NotNull Long domainId,
+        @NotNull Long fantasyGameId,
         LocalDate startDate,
         LocalDate endDate,
         @NotNull RoundStatus status

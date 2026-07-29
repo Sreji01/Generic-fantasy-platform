@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public record LeagueRequest(
         @NotBlank String name,
         String description,
-        @NotNull Long domainId,
+        @NotNull Long fantasyGameId,
         LocalDate startDate,
         LocalDate endDate,
         @NotNull LeagueStatus status,

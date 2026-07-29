@@ -34,9 +34,9 @@ public class PlayerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PlayerResponse>> getAll(@RequestParam(required = false) Long domainId) {
-        if (domainId != null) {
-            return ResponseEntity.ok(playerService.getByDomain(domainId));
+    public ResponseEntity<List<PlayerResponse>> getAll(@RequestParam(required = false) Long fantasyGameId) {
+        if (fantasyGameId != null) {
+            return ResponseEntity.ok(playerService.getByFantasyGame(fantasyGameId));
         }
         return ResponseEntity.ok(playerService.getAll());
     }

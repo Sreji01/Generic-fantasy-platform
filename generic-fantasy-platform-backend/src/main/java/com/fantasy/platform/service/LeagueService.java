@@ -2,11 +2,11 @@ package com.fantasy.platform.service;
 
 import com.fantasy.platform.dto.league.LeagueRequest;
 import com.fantasy.platform.dto.league.LeagueResponse;
-import com.fantasy.platform.entity.Domain;
+import com.fantasy.platform.entity.FantasyGame;
 import com.fantasy.platform.entity.League;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
-import com.fantasy.platform.repository.DomainRepository;
+import com.fantasy.platform.repository.FantasyGameRepository;
 import com.fantasy.platform.repository.LeagueRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,14 +22,14 @@ import java.util.List;
 public class LeagueService {
 
     private final LeagueRepository leagueRepository;
-    private final DomainRepository domainRepository;
+    private final FantasyGameRepository fantasyGameRepository;
     private final UserRepository userRepository;
 
     public LeagueResponse create(LeagueRequest request) {
-        Domain domain = findDomainOrThrow(request.domainId());
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
 
         League league = new League();
-        applyRequest(league, request, domain);
+        applyRequest(league, request, fantasyGame);
 
         leagueRepository.save(league);
         return toResponse(league);
@@ -39,8 +39,8 @@ public class LeagueService {
         return leagueRepository.findAll().stream().map(this::toResponse).toList();
     }
 
-    public List<LeagueResponse> getByDomain(Long domainId) {
-        return leagueRepository.findByDomainId(domainId).stream().map(this::toResponse).toList();
+    public List<LeagueResponse> getByFantasyGame(Long fantasyGameId) {
+        return leagueRepository.findByFantasyGameId(fantasyGameId).stream().map(this::toResponse).toList();
     }
 
     public LeagueResponse getById(Long id) {
@@ -51,8 +51,8 @@ public class LeagueService {
         League league = findLeagueOrThrow(id);
         requireAdmin(userId);
 
-        Domain domain = findDomainOrThrow(request.domainId());
-        applyRequest(league, request, domain);
+        FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
+        applyRequest(league, request, fantasyGame);
 
         leagueRepository.save(league);
         return toResponse(league);
@@ -64,10 +64,10 @@ public class LeagueService {
         leagueRepository.delete(league);
     }
 
-    private void applyRequest(League league, LeagueRequest request, Domain domain) {
+    private void applyRequest(League league, LeagueRequest request, FantasyGame fantasyGame) {
         league.setName(request.name());
         league.setDescription(request.description());
-        league.setDomain(domain);
+        league.setFantasyGame(fantasyGame);
         league.setStartDate(request.startDate());
         league.setEndDate(request.endDate());
         league.setStatus(request.status());
@@ -81,9 +81,9 @@ public class LeagueService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found"));
     }
 
-    private Domain findDomainOrThrow(Long id) {
-        return domainRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Domain not found"));
+    private FantasyGame findFantasyGameOrThrow(Long id) {
+        return fantasyGameRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FantasyGame not found"));
     }
 
     private void requireAdmin(Long userId) {
@@ -100,8 +100,8 @@ public class LeagueService {
                 league.getId(),
                 league.getName(),
                 league.getDescription(),
-                league.getDomain().getId(),
-                league.getDomain().getName(),
+                league.getFantasyGame().getId(),
+                league.getFantasyGame().getName(),
                 league.getStartDate(),
                 league.getEndDate(),
                 league.getStatus(),

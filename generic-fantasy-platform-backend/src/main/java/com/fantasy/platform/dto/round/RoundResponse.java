@@ -8,8 +8,8 @@ public record RoundResponse(
         Long id,
         String name,
         Integer roundNumber,
-        Long domainId,
-        String domainName,
+        Long fantasyGameId,
+        String fantasyGameName,
         LocalDate startDate,
         LocalDate endDate,
         RoundStatus status

@@ -40,8 +40,8 @@ public class ScoreService {
     public ScoreResponse create(ScoreRequest request, Long userId) {
         FantasyTeam team = findTeamOrThrow(request.fantasyTeamId());
         Round round = findRoundOrThrow(request.roundId());
-        requireDomainOwnerOrAdmin(team, userId);
-        requireSameDomain(team, round);
+        requireFantasyGameOwnerOrAdmin(team, userId);
+        requireSameFantasyGame(team, round);
 
         Score score = new Score();
         applyRequest(score, request, team, round);
@@ -52,7 +52,7 @@ public class ScoreService {
 
     public List<ScoreResponse> calculateForRound(Long roundId, Long userId) {
         Round round = findRoundOrThrow(roundId);
-        requireDomainOwnerOrAdmin(round, userId);
+        requireFantasyGameOwnerOrAdmin(round, userId);
 
         Map<Long, Double> pointsByPlayerId = playerResultRepository.findByRoundId(roundId).stream()
                 .collect(Collectors.toMap(
@@ -60,7 +60,7 @@ public class ScoreService {
                         pr -> pr.getPointsEarned() != null ? pr.getPointsEarned() : 0.0,
                         (a, b) -> b));
 
-        List<FantasyTeam> teams = fantasyTeamRepository.findByLeagueDomainId(round.getDomain().getId());
+        List<FantasyTeam> teams = fantasyTeamRepository.findByLeagueFantasyGameId(round.getFantasyGame().getId());
 
         return teams.stream()
                 .map(team -> calculateForTeam(team, round, pointsByPlayerId))
@@ -122,8 +122,8 @@ public class ScoreService {
         Score score = findScoreOrThrow(id);
         FantasyTeam team = findTeamOrThrow(request.fantasyTeamId());
         Round round = findRoundOrThrow(request.roundId());
-        requireDomainOwnerOrAdmin(team, userId);
-        requireSameDomain(team, round);
+        requireFantasyGameOwnerOrAdmin(team, userId);
+        requireSameFantasyGame(team, round);
 
         applyRequest(score, request, team, round);
 
@@ -133,7 +133,7 @@ public class ScoreService {
 
     public void delete(Long id, Long userId) {
         Score score = findScoreOrThrow(id);
-        requireDomainOwnerOrAdmin(score.getFantasyTeam(), userId);
+        requireFantasyGameOwnerOrAdmin(score.getFantasyTeam(), userId);
         scoreRepository.delete(score);
     }
 
@@ -159,33 +159,33 @@ public class ScoreService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
     }
 
-    private void requireDomainOwnerOrAdmin(FantasyTeam team, Long userId) {
+    private void requireFantasyGameOwnerOrAdmin(FantasyTeam team, Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = team.getLeague().getDomain().getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = team.getLeague().getFantasyGame().getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can manage scores");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can manage scores");
         }
     }
 
-    private void requireDomainOwnerOrAdmin(Round round, Long userId) {
+    private void requireFantasyGameOwnerOrAdmin(Round round, Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = round.getDomain().getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = round.getFantasyGame().getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
-            throw new AccessDeniedException("Only the domain owner or an admin can calculate scores");
+            throw new AccessDeniedException("Only the fantasyGame owner or an admin can calculate scores");
         }
     }
 
-    private void requireSameDomain(FantasyTeam team, Round round) {
-        if (!team.getLeague().getDomain().getId().equals(round.getDomain().getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fantasy team and round must belong to the same domain");
+    private void requireSameFantasyGame(FantasyTeam team, Round round) {
+        if (!team.getLeague().getFantasyGame().getId().equals(round.getFantasyGame().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fantasy team and round must belong to the same fantasyGame");
         }
     }
 
