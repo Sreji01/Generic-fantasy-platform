@@ -2,27 +2,134 @@
   flex: 1 1 auto;
 }
 
-.content {
-  padding: 24px;
-  max-width: 700px;
+mat-toolbar {
+  .mat-mdc-icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 8px;
+
+    .mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
 }
 
-.banner {
+.content {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.detail-section {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  max-width: 700px;
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+h3 {
+  margin: 0 0 8px;
+}
+
+.grid-field {
+  display: grid;
+  gap: 2px;
+  width: fit-content;
+  margin: 0 auto;
+  background-color: #e3f2e1;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #a5d6a7;
   border-radius: 8px;
-  margin-bottom: 16px;
+  padding: 4px;
+}
+
+.grid-cell {
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  cursor: grab;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+
+  ::ng-deep .mat-mdc-card-content {
+    padding: 0;
+  }
+}
+
+.player-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  color: #6750a4;
+}
+
+.player-name {
+  font-size: 0.5rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.scoring-rules-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.rule-name {
+  font-weight: 600;
+}
+
+.rule-points {
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .description {
   color: rgba(0, 0, 0, 0.7);
-  margin-bottom: 24px;
+  max-width: 700px;
+  margin-bottom: 32px;
 }
 
 .leagues-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 8px;
 
@@ -48,6 +155,21 @@
 .league-name {
   font-weight: 600;
   flex: 1;
+}
+
+.league-visibility {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.12);
+
+  &.private {
+    color: #b3261e;
+    background: rgba(179, 38, 30, 0.12);
+  }
 }
 
 .league-status {

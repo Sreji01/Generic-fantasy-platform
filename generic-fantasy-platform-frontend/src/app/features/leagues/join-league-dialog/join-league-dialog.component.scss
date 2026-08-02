@@ -1,0 +1,56 @@
+.full-width {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.budget-summary {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 8px;
+
+  .over-limit {
+    color: #b3261e;
+    font-weight: 600;
+  }
+}
+
+.warning {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.players-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+}
+
+.player-meta {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.player-price {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.6);
+}
