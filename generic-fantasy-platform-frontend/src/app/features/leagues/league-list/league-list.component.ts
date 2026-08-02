@@ -26,7 +26,7 @@ export class LeagueListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
 
-  readonly displayedColumns = ['name', 'domain', 'status', 'dates', 'actions'];
+  readonly displayedColumns = ['name', 'fantasyGame', 'status', 'dates', 'actions'];
   readonly leagues = signal<LeagueResponse[]>([]);
 
   ngOnInit(): void {

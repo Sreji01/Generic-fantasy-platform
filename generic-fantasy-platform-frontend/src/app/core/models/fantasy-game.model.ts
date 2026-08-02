@@ -1,7 +1,7 @@
-import { DomainPositionRequest, DomainPositionResponse } from './domain-position.model';
-import { DomainScoringRuleRequest, DomainScoringRuleResponse } from './domain-scoring-rule.model';
+import { FantasyGamePositionRequest, FantasyGamePositionResponse } from './fantasy-game-position.model';
+import { FantasyGameScoringRuleRequest, FantasyGameScoringRuleResponse } from './fantasy-game-scoring-rule.model';
 
-export interface DomainRequest {
+export interface FantasyGameRequest {
   name: string;
   description?: string;
   fieldRows: number;
@@ -10,11 +10,11 @@ export interface DomainRequest {
   benchCols?: number;
   backgroundImageUrl?: string;
   thumbnailUrl?: string;
-  scoringRules: DomainScoringRuleRequest[];
-  positions: DomainPositionRequest[];
+  scoringRules: FantasyGameScoringRuleRequest[];
+  positions: FantasyGamePositionRequest[];
 }
 
-export interface DomainResponse {
+export interface FantasyGameResponse {
   id: number;
   name: string;
   description: string | null;
@@ -25,8 +25,8 @@ export interface DomainResponse {
   backgroundImageUrl: string | null;
   thumbnailUrl: string | null;
   playerCount: number;
-  scoringRules: DomainScoringRuleResponse[];
-  positions: DomainPositionResponse[];
+  scoringRules: FantasyGameScoringRuleResponse[];
+  positions: FantasyGamePositionResponse[];
   createdById: number;
   createdByUsername: string;
 }

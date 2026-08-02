@@ -1,57 +1,57 @@
 import { Component, ElementRef, Input, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { DomainResponse } from '../../../core/models/domain.model';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
 import { environment } from '../../../../environments/environment';
 
 const MIN_TRACK_DURATION_SECONDS = 15;
-const SECONDS_PER_DOMAIN = 4;
+const SECONDS_PER_FANTASY_GAME = 4;
 
 @Component({
-  selector: 'app-domain-carousel',
+  selector: 'app-fantasy-game-carousel',
   standalone: true,
   imports: [],
-  templateUrl: './domain-carousel.component.html',
-  styleUrl: './domain-carousel.component.scss'
+  templateUrl: './fantasy-game-carousel.component.html',
+  styleUrl: './fantasy-game-carousel.component.scss'
 })
-export class DomainCarouselComponent implements OnDestroy {
+export class FantasyGameCarouselComponent implements OnDestroy {
   private readonly router = inject(Router);
   private resizeObserver?: ResizeObserver;
 
-  @Input() emptyMessage = 'No domains yet.';
+  @Input() emptyMessage = 'No fantasy games yet.';
   @Input() alwaysScroll = true;
 
   @Input({ required: true })
-  set domains(value: DomainResponse[]) {
-    this.domainsSignal.set(value);
+  set fantasyGames(value: FantasyGameResponse[]) {
+    this.fantasyGamesSignal.set(value);
   }
 
   private readonly viewportRef = viewChild<ElementRef<HTMLDivElement>>('viewport');
-  private readonly domainsSignal = signal<DomainResponse[]>([]);
+  private readonly fantasyGamesSignal = signal<FantasyGameResponse[]>([]);
 
   // Plain (non-derived) signal: written imperatively from measureOverflow() after inspecting
-  // the real DOM (scrollWidth vs clientWidth), never computed from shouldScroll()/displayDomains()
+  // the real DOM (scrollWidth vs clientWidth), never computed from shouldScroll()/displayFantasyGames()
   // below — those two are doubled while scrolling, and dividing that back out would make this
   // signal depend on its own downstream consumers, which Angular rejects as a computed cycle.
   private readonly isOverflowingSignal = signal(false);
 
-  readonly hasDomains = computed(() => this.domainsSignal().length > 0);
+  readonly hasFantasyGames = computed(() => this.fantasyGamesSignal().length > 0);
   readonly isOverflowing = this.isOverflowingSignal.asReadonly();
   readonly shouldScroll = computed(() => this.alwaysScroll || this.isOverflowing());
-  readonly displayDomains = computed(() =>
-    this.shouldScroll() ? [...this.domainsSignal(), ...this.domainsSignal()] : this.domainsSignal()
+  readonly displayFantasyGames = computed(() =>
+    this.shouldScroll() ? [...this.fantasyGamesSignal(), ...this.fantasyGamesSignal()] : this.fantasyGamesSignal()
   );
   readonly trackDuration = computed(
-    () => `${Math.max(MIN_TRACK_DURATION_SECONDS, this.domainsSignal().length * SECONDS_PER_DOMAIN)}s`
+    () => `${Math.max(MIN_TRACK_DURATION_SECONDS, this.fantasyGamesSignal().length * SECONDS_PER_FANTASY_GAME)}s`
   );
 
   constructor() {
-    // The viewport element only exists once `hasDomains()` is true, so the ResizeObserver is
+    // The viewport element only exists once `hasFantasyGames()` is true, so the ResizeObserver is
     // (re)attached reactively whenever the queried element appears/disappears, and re-measured
-    // whenever the domain list itself changes (e.g. a shorter list that now fits).
+    // whenever the fantasyGame list itself changes (e.g. a shorter list that now fits).
     effect(() => {
       const el = this.viewportRef()?.nativeElement;
-      this.domainsSignal();
+      this.fantasyGamesSignal();
 
       this.resizeObserver?.disconnect();
       this.resizeObserver = undefined;
@@ -71,20 +71,20 @@ export class DomainCarouselComponent implements OnDestroy {
     this.resizeObserver?.disconnect();
   }
 
-  posterUrl(domain: DomainResponse): string | null {
-    return domain.thumbnailUrl ? `${environment.apiUrl}${domain.thumbnailUrl}` : null;
+  posterUrl(fantasyGame: FantasyGameResponse): string | null {
+    return fantasyGame.thumbnailUrl ? `${environment.apiUrl}${fantasyGame.thumbnailUrl}` : null;
   }
 
-  openDomain(domain: DomainResponse): void {
-    this.router.navigate(['/domains', domain.id]);
+  openFantasyGame(fantasyGame: FantasyGameResponse): void {
+    this.router.navigate(['/fantasy-games', fantasyGame.id]);
   }
 
   private measureOverflow(viewport: HTMLDivElement): void {
     // The track may currently be rendering a doubled (looping) copy of the cards, so divide
     // scrollWidth back down to a single copy's width before comparing it to the viewport.
-    const domainCount = this.domainsSignal().length;
+    const fantasyGameCount = this.fantasyGamesSignal().length;
     const posterCount = viewport.querySelectorAll('.poster').length;
-    const multiplier = domainCount > 0 && posterCount === domainCount * 2 ? 2 : 1;
+    const multiplier = fantasyGameCount > 0 && posterCount === fantasyGameCount * 2 ? 2 : 1;
     const singleCopyWidth = viewport.scrollWidth / multiplier;
     this.isOverflowingSignal.set(singleCopyWidth > viewport.clientWidth);
   }

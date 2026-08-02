@@ -1,23 +1,23 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 
-import { DomainService } from '../../../core/services/domain.service';
-import { DomainResponse } from '../../../core/models/domain.model';
-import { DomainCarouselComponent } from '../domain-carousel/domain-carousel.component';
+import { FantasyGameService } from '../../../core/services/fantasy-game.service';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
+import { FantasyGameCarouselComponent } from '../fantasy-game-carousel/fantasy-game-carousel.component';
 
 @Component({
-  selector: 'app-popular-domains',
+  selector: 'app-popular-fantasy-games',
   standalone: true,
-  imports: [DomainCarouselComponent],
-  templateUrl: './popular-domains.component.html',
-  styleUrl: './popular-domains.component.scss'
+  imports: [FantasyGameCarouselComponent],
+  templateUrl: './popular-fantasy-games.component.html',
+  styleUrl: './popular-fantasy-games.component.scss'
 })
-export class PopularDomainsComponent implements OnInit {
-  private readonly domainService = inject(DomainService);
+export class PopularFantasyGamesComponent implements OnInit {
+  private readonly fantasyGameService = inject(FantasyGameService);
 
-  readonly domains = signal<DomainResponse[]>([]);
-  readonly popularDomains = computed(() => [...this.domains()].sort((a, b) => b.playerCount - a.playerCount));
+  readonly fantasyGames = signal<FantasyGameResponse[]>([]);
+  readonly popularFantasyGames = computed(() => [...this.fantasyGames()].sort((a, b) => b.playerCount - a.playerCount));
 
   ngOnInit(): void {
-    this.domainService.getAll().subscribe((domains) => this.domains.set(domains));
+    this.fantasyGameService.getAll().subscribe((fantasyGames) => this.fantasyGames.set(fantasyGames));
   }
 }

@@ -2,45 +2,45 @@
   <button mat-icon-button (click)="goHome()" aria-label="Back to home">
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <span>Domains</span>
+  <span>Fantasy Games</span>
   <span class="spacer"></span>
   <button mat-flat-button (click)="openCreateDialog()">
     <mat-icon>add</mat-icon>
-    Create Domain
+    Create Fantasy Game
   </button>
 </mat-toolbar>
 
 <div class="content">
-  <table mat-table [dataSource]="domains()" class="mat-elevation-z1">
+  <table mat-table [dataSource]="fantasyGames()" class="mat-elevation-z1">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let domain">{{ domain.name }}</td>
+      <td mat-cell *matCellDef="let fantasyGame">{{ fantasyGame.name }}</td>
     </ng-container>
 
     <ng-container matColumnDef="description">
       <th mat-header-cell *matHeaderCellDef>Description</th>
-      <td mat-cell *matCellDef="let domain">{{ domain.description || '—' }}</td>
+      <td mat-cell *matCellDef="let fantasyGame">{{ fantasyGame.description || '—' }}</td>
     </ng-container>
 
     <ng-container matColumnDef="createdBy">
       <th mat-header-cell *matHeaderCellDef>Created By</th>
-      <td mat-cell *matCellDef="let domain">{{ domain.createdByUsername }}</td>
+      <td mat-cell *matCellDef="let fantasyGame">{{ fantasyGame.createdByUsername }}</td>
     </ng-container>
 
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let domain">
-        <button mat-icon-button (click)="openDetails(domain)" aria-label="View details">
+      <td mat-cell *matCellDef="let fantasyGame">
+        <button mat-icon-button (click)="openDetails(fantasyGame)" aria-label="View details">
           <mat-icon>visibility</mat-icon>
         </button>
-        @if (canModify(domain)) {
-          <button mat-icon-button (click)="openFieldBuilder(domain)" aria-label="Configure field">
+        @if (canModify(fantasyGame)) {
+          <button mat-icon-button (click)="openFieldBuilder(fantasyGame)" aria-label="Configure field">
             <mat-icon>grid_on</mat-icon>
           </button>
-          <button mat-icon-button (click)="openEditDialog(domain)" aria-label="Edit domain">
+          <button mat-icon-button (click)="openEditDialog(fantasyGame)" aria-label="Edit fantasy game">
             <mat-icon>edit</mat-icon>
           </button>
-          <button mat-icon-button (click)="deleteDomain(domain)" aria-label="Delete domain">
+          <button mat-icon-button (click)="deleteFantasyGame(fantasyGame)" aria-label="Delete fantasy game">
             <mat-icon>delete</mat-icon>
           </button>
         }
@@ -51,7 +51,7 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  @if (domains().length === 0) {
-    <p class="empty-state">No domains yet. Create one to get started.</p>
+  @if (fantasyGames().length === 0) {
+    <p class="empty-state">No fantasy games yet. Create one to get started.</p>
   }
 </div>

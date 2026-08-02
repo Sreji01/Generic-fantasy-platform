@@ -1,11 +1,11 @@
 import { PositionSlotRequest, PositionSlotResponse } from './position-slot.model';
 
-export interface DomainPositionRequest {
+export interface FantasyGamePositionRequest {
   name: string;
   slots: PositionSlotRequest[];
 }
 
-export interface DomainPositionResponse {
+export interface FantasyGamePositionResponse {
   id: number;
   name: string;
   slots: PositionSlotResponse[];

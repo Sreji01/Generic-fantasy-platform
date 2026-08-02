@@ -7,13 +7,20 @@
   <button mat-button (click)="logout()">Logout</button>
 </mat-toolbar>
 
-<app-popular-domains />
-<app-my-domains />
+<div class="create-fantasy-game-row">
+  <button mat-flat-button color="primary" (click)="openCreateFantasyGameDialog()">
+    <mat-icon>add</mat-icon>
+    Create Your Fantasy Game
+  </button>
+</div>
+
+<app-popular-fantasy-games />
+<app-my-fantasy-games />
 
 <div class="content">
   <p>You are logged in.</p>
   <div class="nav-links">
-    <a mat-flat-button routerLink="/domains">Manage Domains</a>
+    <a mat-flat-button routerLink="/fantasy-games">Manage Fantasy Games</a>
     <a mat-flat-button routerLink="/leagues">Manage Leagues</a>
   </div>
 </div>

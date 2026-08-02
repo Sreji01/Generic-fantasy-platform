@@ -6,8 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { DomainRequest, DomainResponse } from '../../../core/models/domain.model';
-import { ScoringRulePositionValue } from '../../../core/models/domain-scoring-rule.model';
+import { FantasyGameRequest, FantasyGameResponse } from '../../../core/models/fantasy-game.model';
+import { ScoringRulePositionValue } from '../../../core/models/fantasy-game-scoring-rule.model';
 
 interface WorkingScoringRule {
   tempId: number;
@@ -18,16 +18,16 @@ interface WorkingScoringRule {
 }
 
 @Component({
-  selector: 'app-domain-form-dialog',
+  selector: 'app-fantasy-game-form-dialog',
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule],
-  templateUrl: './domain-form-dialog.component.html',
-  styleUrl: './domain-form-dialog.component.scss'
+  templateUrl: './fantasy-game-form-dialog.component.html',
+  styleUrl: './fantasy-game-form-dialog.component.scss'
 })
-export class DomainFormDialogComponent {
+export class FantasyGameFormDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly dialogRef = inject(MatDialogRef<DomainFormDialogComponent>);
-  readonly data = inject<DomainResponse | null>(MAT_DIALOG_DATA);
+  private readonly dialogRef = inject(MatDialogRef<FantasyGameFormDialogComponent>);
+  readonly data = inject<FantasyGameResponse | null>(MAT_DIALOG_DATA);
 
   private nextTempId = 1;
 
@@ -117,7 +117,7 @@ export class DomainFormDialogComponent {
     }
 
     const raw = this.form.getRawValue();
-    const result: DomainRequest = {
+    const result: FantasyGameRequest = {
       name: raw.name ?? '',
       description: raw.description || undefined,
       fieldRows: this.data?.fieldRows ?? 5,

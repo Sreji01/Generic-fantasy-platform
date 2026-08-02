@@ -3,13 +3,13 @@ export interface ScoringRulePositionValue {
   points: number;
 }
 
-export interface DomainScoringRuleRequest {
+export interface FantasyGameScoringRuleRequest {
   name: string;
   variesByPosition: boolean;
   points?: number;
   positionValues: ScoringRulePositionValue[];
 }
 
-export interface DomainScoringRuleResponse extends DomainScoringRuleRequest {
+export interface FantasyGameScoringRuleResponse extends FantasyGameScoringRuleRequest {
   id: number;
 }

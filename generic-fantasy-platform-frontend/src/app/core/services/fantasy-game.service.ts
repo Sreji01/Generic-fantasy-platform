@@ -3,39 +3,39 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { DomainRequest, DomainResponse } from '../models/domain.model';
+import { FantasyGameRequest, FantasyGameResponse } from '../models/fantasy-game.model';
 
 @Injectable({ providedIn: 'root' })
-export class DomainService {
+export class FantasyGameService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/domains`;
+  private readonly baseUrl = `${environment.apiUrl}/fantasy-games`;
 
-  getAll(): Observable<DomainResponse[]> {
-    return this.http.get<DomainResponse[]>(this.baseUrl);
+  getAll(): Observable<FantasyGameResponse[]> {
+    return this.http.get<FantasyGameResponse[]>(this.baseUrl);
   }
 
-  getById(id: number): Observable<DomainResponse> {
-    return this.http.get<DomainResponse>(`${this.baseUrl}/${id}`);
+  getById(id: number): Observable<FantasyGameResponse> {
+    return this.http.get<FantasyGameResponse>(`${this.baseUrl}/${id}`);
   }
 
-  create(request: DomainRequest): Observable<DomainResponse> {
-    return this.http.post<DomainResponse>(this.baseUrl, request);
+  create(request: FantasyGameRequest): Observable<FantasyGameResponse> {
+    return this.http.post<FantasyGameResponse>(this.baseUrl, request);
   }
 
-  update(id: number, request: DomainRequest): Observable<DomainResponse> {
-    return this.http.put<DomainResponse>(`${this.baseUrl}/${id}`, request);
+  update(id: number, request: FantasyGameRequest): Observable<FantasyGameResponse> {
+    return this.http.put<FantasyGameResponse>(`${this.baseUrl}/${id}`, request);
   }
 
-  uploadBackgroundImage(id: number, file: File): Observable<DomainResponse> {
+  uploadBackgroundImage(id: number, file: File): Observable<FantasyGameResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<DomainResponse>(`${this.baseUrl}/${id}/background-image`, formData);
+    return this.http.post<FantasyGameResponse>(`${this.baseUrl}/${id}/background-image`, formData);
   }
 
-  uploadThumbnailImage(id: number, file: File): Observable<DomainResponse> {
+  uploadThumbnailImage(id: number, file: File): Observable<FantasyGameResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<DomainResponse>(`${this.baseUrl}/${id}/thumbnail-image`, formData);
+    return this.http.post<FantasyGameResponse>(`${this.baseUrl}/${id}/thumbnail-image`, formData);
   }
 
   delete(id: number): Observable<void> {

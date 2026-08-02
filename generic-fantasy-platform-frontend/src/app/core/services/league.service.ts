@@ -10,8 +10,8 @@ export class LeagueService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/leagues`;
 
-  getAll(domainId?: number): Observable<LeagueResponse[]> {
-    const params = domainId !== undefined ? new HttpParams().set('domainId', domainId) : undefined;
+  getAll(fantasyGameId?: number): Observable<LeagueResponse[]> {
+    const params = fantasyGameId !== undefined ? new HttpParams().set('fantasyGameId', fantasyGameId) : undefined;
     return this.http.get<LeagueResponse[]>(this.baseUrl, { params });
   }
 

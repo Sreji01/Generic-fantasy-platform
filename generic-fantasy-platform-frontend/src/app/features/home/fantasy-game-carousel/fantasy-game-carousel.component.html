@@ -1,19 +1,19 @@
-@if (hasDomains()) {
+@if (hasFantasyGames()) {
   <div class="track-viewport" [class.has-overflow]="shouldScroll()" #viewport>
     <div
       class="track"
       [class.scrolling]="shouldScroll()"
       [style.animation-duration]="shouldScroll() ? trackDuration() : null"
     >
-      @for (domain of displayDomains(); track $index) {
-        <div class="poster" (click)="openDomain(domain)">
-          @if (posterUrl(domain); as url) {
-            <img [src]="url" [alt]="domain.name" class="poster-image" />
+      @for (fantasyGame of displayFantasyGames(); track $index) {
+        <div class="poster" (click)="openFantasyGame(fantasyGame)">
+          @if (posterUrl(fantasyGame); as url) {
+            <img [src]="url" [alt]="fantasyGame.name" class="poster-image" />
           } @else {
-            <div class="poster-placeholder">{{ domain.name.charAt(0) }}</div>
+            <div class="poster-placeholder">{{ fantasyGame.name.charAt(0) }}</div>
           }
           <div class="poster-scrim"></div>
-          <span class="poster-name">{{ domain.name }}</span>
+          <span class="poster-name">{{ fantasyGame.name }}</span>
         </div>
       }
     </div>

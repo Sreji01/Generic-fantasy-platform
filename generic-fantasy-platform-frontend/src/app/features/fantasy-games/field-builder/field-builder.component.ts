@@ -11,8 +11,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-import { DomainService } from '../../../core/services/domain.service';
-import { DomainResponse } from '../../../core/models/domain.model';
+import { FantasyGameService } from '../../../core/services/fantasy-game.service';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
 import { environment } from '../../../../environments/environment';
 
 const ROTATION_ROW = -1;
@@ -68,11 +68,11 @@ interface CellRef {
 export class FieldBuilderComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly domainService = inject(DomainService);
+  private readonly fantasyGameService = inject(FantasyGameService);
   private readonly snackBar = inject(MatSnackBar);
 
-  private domainId!: number;
-  private domain: DomainResponse | null = null;
+  private fantasyGameId!: number;
+  private fantasyGame: FantasyGameResponse | null = null;
   private nextTempId = 1;
 
   readonly fieldRows = signal(DEFAULT_FIELD_SIZE);
@@ -95,7 +95,7 @@ export class FieldBuilderComponent implements OnInit {
   benchRowsInput = 1;
   benchColsInput = DEFAULT_FIELD_SIZE;
 
-  readonly domainName = signal('');
+  readonly fantasyGameName = signal('');
   readonly backgroundImageUrl = signal<string | null>(null);
   readonly backgroundImageDisplayUrl = computed(() => {
     const url = this.backgroundImageUrl();
@@ -120,29 +120,29 @@ export class FieldBuilderComponent implements OnInit {
   ruleFormPositionPoints: Record<string, number> = {};
 
   ngOnInit(): void {
-    this.domainId = Number(this.route.snapshot.paramMap.get('id'));
-    this.domainService.getById(this.domainId).subscribe((domain) => {
-      this.domain = domain;
-      this.domainName.set(domain.name);
-      this.fieldRows.set(domain.fieldRows);
-      this.fieldCols.set(domain.fieldCols);
-      this.fieldRowsInput = domain.fieldRows;
-      this.fieldColsInput = domain.fieldCols;
-      this.benchRows.set(domain.benchRows);
-      this.benchCols.set(domain.benchCols);
-      this.benchRowsInput = domain.benchRows ?? 1;
-      this.benchColsInput = domain.benchCols ?? domain.fieldCols;
-      this.backgroundImageUrl.set(domain.backgroundImageUrl);
-      this.thumbnailUrl.set(domain.thumbnailUrl);
+    this.fantasyGameId = Number(this.route.snapshot.paramMap.get('id'));
+    this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => {
+      this.fantasyGame = fantasyGame;
+      this.fantasyGameName.set(fantasyGame.name);
+      this.fieldRows.set(fantasyGame.fieldRows);
+      this.fieldCols.set(fantasyGame.fieldCols);
+      this.fieldRowsInput = fantasyGame.fieldRows;
+      this.fieldColsInput = fantasyGame.fieldCols;
+      this.benchRows.set(fantasyGame.benchRows);
+      this.benchCols.set(fantasyGame.benchCols);
+      this.benchRowsInput = fantasyGame.benchRows ?? 1;
+      this.benchColsInput = fantasyGame.benchCols ?? fantasyGame.fieldCols;
+      this.backgroundImageUrl.set(fantasyGame.backgroundImageUrl);
+      this.thumbnailUrl.set(fantasyGame.thumbnailUrl);
       this.positions.set(
-        domain.positions.map((p) => ({
+        fantasyGame.positions.map((p) => ({
           tempId: this.nextTempId++,
           name: p.name,
           slots: p.slots.map((s) => ({ tempId: this.nextTempId++, rowIndex: s.rowIndex, colIndex: s.colIndex }))
         }))
       );
       this.scoringRules.set(
-        domain.scoringRules.map((r) => ({
+        fantasyGame.scoringRules.map((r) => ({
           tempId: this.nextTempId++,
           name: r.name,
           variesByPosition: r.variesByPosition,
@@ -192,9 +192,9 @@ export class FieldBuilderComponent implements OnInit {
       return;
     }
 
-    this.domainService.uploadBackgroundImage(this.domainId, file).subscribe({
-      next: (domain) => {
-        this.backgroundImageUrl.set(domain.backgroundImageUrl);
+    this.fantasyGameService.uploadBackgroundImage(this.fantasyGameId, file).subscribe({
+      next: (fantasyGame) => {
+        this.backgroundImageUrl.set(fantasyGame.backgroundImageUrl);
         input.value = '';
       },
       error: () => {
@@ -215,9 +215,9 @@ export class FieldBuilderComponent implements OnInit {
       return;
     }
 
-    this.domainService.uploadThumbnailImage(this.domainId, file).subscribe({
-      next: (domain) => {
-        this.thumbnailUrl.set(domain.thumbnailUrl);
+    this.fantasyGameService.uploadThumbnailImage(this.fantasyGameId, file).subscribe({
+      next: (fantasyGame) => {
+        this.thumbnailUrl.set(fantasyGame.thumbnailUrl);
         input.value = '';
       },
       error: () => {
@@ -376,13 +376,13 @@ export class FieldBuilderComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.domain) {
+    if (!this.fantasyGame) {
       return;
     }
 
     const request = {
-      name: this.domain.name,
-      description: this.domain.description ?? undefined,
+      name: this.fantasyGame.name,
+      description: this.fantasyGame.description ?? undefined,
       fieldRows: this.fieldRows(),
       fieldCols: this.fieldCols(),
       benchRows: this.benchRows() ?? undefined,
@@ -403,16 +403,16 @@ export class FieldBuilderComponent implements OnInit {
       }))
     };
 
-    this.domainService.update(this.domainId, request).subscribe({
+    this.fantasyGameService.update(this.fantasyGameId, request).subscribe({
       next: () => {
         this.snackBar.open('Field saved.', 'Close', { duration: 3000 });
-        this.router.navigateByUrl('/domains');
+        this.router.navigateByUrl('/fantasy-games');
       },
       error: () => this.snackBar.open('Failed to save field.', 'Close', { duration: 3000 })
     });
   }
 
   cancel(): void {
-    this.router.navigateByUrl('/domains');
+    this.router.navigateByUrl('/fantasy-games');
   }
 }

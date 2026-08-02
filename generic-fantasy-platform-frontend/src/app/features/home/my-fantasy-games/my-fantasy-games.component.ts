@@ -1,28 +1,28 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { DomainService } from '../../../core/services/domain.service';
-import { DomainResponse } from '../../../core/models/domain.model';
-import { DomainCarouselComponent } from '../domain-carousel/domain-carousel.component';
+import { FantasyGameService } from '../../../core/services/fantasy-game.service';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
+import { FantasyGameCarouselComponent } from '../fantasy-game-carousel/fantasy-game-carousel.component';
 
 @Component({
-  selector: 'app-my-domains',
+  selector: 'app-my-fantasy-games',
   standalone: true,
-  imports: [DomainCarouselComponent],
-  templateUrl: './my-domains.component.html',
-  styleUrl: './my-domains.component.scss'
+  imports: [FantasyGameCarouselComponent],
+  templateUrl: './my-fantasy-games.component.html',
+  styleUrl: './my-fantasy-games.component.scss'
 })
-export class MyDomainsComponent implements OnInit {
-  private readonly domainService = inject(DomainService);
+export class MyFantasyGamesComponent implements OnInit {
+  private readonly fantasyGameService = inject(FantasyGameService);
   private readonly authService = inject(AuthService);
 
-  readonly domains = signal<DomainResponse[]>([]);
-  readonly myDomains = computed(() => {
+  readonly fantasyGames = signal<FantasyGameResponse[]>([]);
+  readonly myFantasyGames = computed(() => {
     const username = this.authService.currentUser()?.username;
-    return this.domains().filter((domain) => domain.createdByUsername === username);
+    return this.fantasyGames().filter((fantasyGame) => fantasyGame.createdByUsername === username);
   });
 
   ngOnInit(): void {
-    this.domainService.getAll().subscribe((domains) => this.domains.set(domains));
+    this.fantasyGameService.getAll().subscribe((fantasyGames) => this.fantasyGames.set(fantasyGames));
   }
 }
