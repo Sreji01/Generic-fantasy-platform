@@ -10,9 +10,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { FantasyGameService } from '../../../core/services/fantasy-game.service';
 import { LeagueService } from '../../../core/services/league.service';
 import { FantasyTeamService } from '../../../core/services/fantasy-team.service';
+import { RoundService } from '../../../core/services/round.service';
 import { FantasyGameRequest, FantasyGameResponse } from '../../../core/models/fantasy-game.model';
 import { LeagueRequest, LeagueResponse } from '../../../core/models/league.model';
 import { FantasyTeamRequest } from '../../../core/models/fantasy-team.model';
@@ -36,6 +38,8 @@ export class FantasyGameDetailsComponent implements OnInit {
   private readonly fantasyGameService = inject(FantasyGameService);
   private readonly leagueService = inject(LeagueService);
   private readonly fantasyTeamService = inject(FantasyTeamService);
+  private readonly roundService = inject(RoundService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -44,6 +48,9 @@ export class FantasyGameDetailsComponent implements OnInit {
   readonly fantasyGame = signal<FantasyGameResponse | null>(null);
   readonly leagues = signal<LeagueResponse[]>([]);
   readonly popularLeagues = computed(() => [...this.leagues()].sort((a, b) => b.participantCount - a.participantCount));
+  readonly transfersLocked = signal(false);
+
+  readonly canBypassLock = computed(() => this.authService.currentUser()?.role === 'ADMIN');
 
   readonly backgroundDisplayUrl = computed(() => {
     const url = this.fantasyGame()?.backgroundImageUrl;
@@ -67,6 +74,7 @@ export class FantasyGameDetailsComponent implements OnInit {
     this.fantasyGameId = Number(this.route.snapshot.paramMap.get('id'));
     this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => this.fantasyGame.set(fantasyGame));
     this.loadLeagues();
+    this.roundService.getAll(this.fantasyGameId).subscribe((rounds) => this.transfersLocked.set(rounds.some((r) => r.status === 'ACTIVE')));
   }
 
   cellAt(row: number, col: number): { positionName: string; slotNumber: number } | null {
@@ -85,6 +93,18 @@ export class FantasyGameDetailsComponent implements OnInit {
 
   manageField(): void {
     this.router.navigate(['/fantasy-games', this.fantasyGameId, 'field']);
+  }
+
+  managePlayers(): void {
+    this.router.navigate(['/fantasy-games', this.fantasyGameId, 'players']);
+  }
+
+  manageRounds(): void {
+    this.router.navigate(['/fantasy-games', this.fantasyGameId, 'rounds']);
+  }
+
+  viewStandings(league: LeagueResponse): void {
+    this.router.navigate(['/leagues', league.id, 'standings']);
   }
 
   goBack(): void {
@@ -115,17 +135,24 @@ export class FantasyGameDetailsComponent implements OnInit {
 
   deleteFantasyGame(): void {
     const fantasyGame = this.fantasyGame();
-    if (!fantasyGame || !confirm(`Delete fantasy game "${fantasyGame.name}"?`)) {
+    if (!fantasyGame) {
       return;
     }
 
-    this.fantasyGameService.delete(fantasyGame.id).subscribe({
-      next: () => {
-        this.snackBar.open('Fantasy Game deleted.', 'Close', { duration: 3000 });
-        this.location.back();
-      },
-      error: () => this.snackBar.open('Failed to delete fantasy game. You may not have permission.', 'Close', { duration: 4000 })
-    });
+    this.confirmDialog
+      .confirm({ title: 'Delete Fantasy Game', message: `Delete fantasy game "${fantasyGame.name}"?` })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.fantasyGameService.delete(fantasyGame.id).subscribe({
+          next: () => {
+            this.snackBar.open('Fantasy Game deleted.', 'Close', { duration: 3000 });
+            this.location.back();
+          },
+          error: () => this.snackBar.open('Failed to delete fantasy game. You may not have permission.', 'Close', { duration: 4000 })
+        });
+      });
   }
 
   openCreateLeagueDialog(): void {

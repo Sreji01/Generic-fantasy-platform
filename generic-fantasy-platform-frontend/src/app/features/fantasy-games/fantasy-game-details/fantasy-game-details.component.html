@@ -8,6 +8,12 @@
     <button mat-icon-button (click)="manageField()" matTooltip="Manage Field" aria-label="Manage field">
       <mat-icon>grid_on</mat-icon>
     </button>
+    <button mat-icon-button (click)="managePlayers()" matTooltip="Manage Players" aria-label="Manage players">
+      <mat-icon>groups</mat-icon>
+    </button>
+    <button mat-icon-button (click)="manageRounds()" matTooltip="Manage Rounds" aria-label="Manage rounds">
+      <mat-icon>event</mat-icon>
+    </button>
     <button mat-icon-button (click)="openEditDialog()" matTooltip="Edit" aria-label="Edit fantasy game">
       <mat-icon>edit</mat-icon>
     </button>
@@ -70,12 +76,21 @@
           Create League
         </button>
         @if (popularLeagues().length > 0) {
-          <button mat-flat-button type="button" (click)="openCreateTeamDialog()">
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="transfersLocked() && !canBypassLock()"
+            (click)="openCreateTeamDialog()"
+          >
             <mat-icon>group_add</mat-icon>
             Create Team
           </button>
         }
       </div>
+
+      @if (transfersLocked()) {
+        <p class="lock-banner">Team changes are locked while a round is active.</p>
+      }
 
       @if (popularLeagues().length > 0) {
         <ul class="leagues-list">
@@ -87,7 +102,16 @@
               </span>
               <span class="league-status">{{ league.status }}</span>
               <span class="league-participants">{{ league.participantCount }} participants</span>
-              <button mat-button color="primary" type="button" (click)="openJoinLeagueDialog(league)">Join</button>
+              <button mat-button type="button" (click)="viewStandings(league)">Standings</button>
+              <button
+                mat-button
+                color="primary"
+                type="button"
+                [disabled]="transfersLocked() && !canBypassLock()"
+                (click)="openJoinLeagueDialog(league)"
+              >
+                Join
+              </button>
             </li>
           }
         </ul>

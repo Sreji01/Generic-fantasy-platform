@@ -36,6 +36,10 @@ export class HomeComponent {
 
   readonly currentUser = this.authService.currentUser;
 
+  isAdmin(): boolean {
+    return this.authService.currentUser()?.role === 'ADMIN';
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigateByUrl('/login');

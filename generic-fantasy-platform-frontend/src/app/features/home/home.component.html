@@ -22,5 +22,10 @@
   <div class="nav-links">
     <a mat-flat-button routerLink="/fantasy-games">Manage Fantasy Games</a>
     <a mat-flat-button routerLink="/leagues">Manage Leagues</a>
+    <a mat-flat-button routerLink="/leagues/browse">Browse Public Leagues</a>
+    <a mat-flat-button routerLink="/my-teams">My Teams</a>
+    @if (isAdmin()) {
+      <a mat-flat-button routerLink="/admin">Admin Panel</a>
+    }
   </div>
 </div>
