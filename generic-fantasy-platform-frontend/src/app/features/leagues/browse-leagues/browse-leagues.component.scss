@@ -1,0 +1,26 @@
+.content {
+  padding: 24px;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+table {
+  width: 100%;
+}
+
+.joined-label {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.empty-state {
+  margin-top: 16px;
+  color: rgba(0, 0, 0, 0.6);
+}
