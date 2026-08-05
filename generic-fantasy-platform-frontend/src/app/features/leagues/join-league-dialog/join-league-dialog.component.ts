@@ -16,6 +16,7 @@ export interface JoinLeagueDialogData {
   fantasyGameId: number;
   leagues: LeagueResponse[];
   preselectedLeagueId?: number;
+  existingTeam?: { id: number; name: string; playerIds: number[] };
 }
 
 @Component({
@@ -38,9 +39,10 @@ export class JoinLeagueDialogComponent implements OnInit {
   private readonly playerService = inject(PlayerService);
   readonly data = inject<JoinLeagueDialogData>(MAT_DIALOG_DATA);
 
-  readonly teamName = signal('');
+  readonly isEditMode = this.data.existingTeam != null;
+  readonly teamName = signal(this.data.existingTeam?.name ?? '');
   readonly players = signal<PlayerResponse[]>([]);
-  readonly selectedPlayerIds = signal<Set<number>>(new Set());
+  readonly selectedPlayerIds = signal<Set<number>>(new Set(this.data.existingTeam?.playerIds ?? []));
   readonly selectedLeagueId = signal<number | null>(this.data.preselectedLeagueId ?? null);
 
   readonly selectedLeague = computed(

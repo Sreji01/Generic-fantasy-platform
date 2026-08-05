@@ -15,3 +15,12 @@ export interface FantasyTeamResponse {
   createdAt: string;
   playerIds: number[];
 }
+
+export interface StandingEntry {
+  rank: number;
+  fantasyTeamId: number;
+  fantasyTeamName: string;
+  userId: number;
+  username: string;
+  totalPoints: number | null;
+}

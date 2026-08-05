@@ -1,0 +1,76 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Back to my teams">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>{{ team()?.name }}</span>
+  <span class="spacer"></span>
+  @if (canManage()) {
+    <button
+      mat-icon-button
+      [disabled]="!canEditRoster()"
+      (click)="editRoster()"
+      [matTooltip]="canEditRoster() ? 'Edit Roster' : 'Locked while a round is active'"
+      aria-label="Edit roster"
+    >
+      <mat-icon>swap_horiz</mat-icon>
+    </button>
+    <button mat-icon-button (click)="deleteTeam()" matTooltip="Delete Team" aria-label="Delete team">
+      <mat-icon>delete</mat-icon>
+    </button>
+  }
+</mat-toolbar>
+
+@if (team(); as team) {
+  <div class="content">
+    <div class="team-meta">
+      <span>{{ league()?.name }}</span>
+      <span>{{ team.totalPoints ?? 0 }} pts</span>
+      <button mat-button type="button" (click)="viewStandings()">Standings</button>
+    </div>
+
+    @if (transfersLocked()) {
+      <p class="lock-banner">Transfers are locked while a round is active.</p>
+    }
+
+    @if (fantasyGame(); as fantasyGame) {
+      <section class="detail-section">
+        <h3>Lineup</h3>
+        <div
+          class="grid-field"
+          [style.grid-template-columns]="'repeat(' + fantasyGame.fieldCols + ', ' + cellSize + 'px)'"
+          [style.grid-template-rows]="'repeat(' + fantasyGame.fieldRows + ', ' + cellSize + 'px)'"
+          [style.background-image]="backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null"
+        >
+          @for (row of gridRows(); track row) {
+            @for (col of gridCols(); track col) {
+              <div class="grid-cell">
+                @if (cellAt(row, col); as cell) {
+                  <mat-card class="player-card" [class.empty-slot]="!cell.player">
+                    <mat-icon class="player-icon">account_circle</mat-icon>
+                    <span class="player-name">
+                      {{ cell.player ? (cell.player.firstName + ' ' + cell.player.lastName) : cell.positionName }}
+                    </span>
+                  </mat-card>
+                }
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
+
+    @if (benchPlayers().length > 0) {
+      <section class="detail-section">
+        <h3>Bench</h3>
+        <ul class="bench-list">
+          @for (player of benchPlayers(); track player.id) {
+            <li>
+              <span class="player-name">{{ player.firstName }} {{ player.lastName }}</span>
+              <span class="player-position">{{ player.position }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}

@@ -1,0 +1,48 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goHome()" aria-label="Back to home">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>My Teams</span>
+</mat-toolbar>
+
+<div class="content">
+  @if (teams().length > 0) {
+    <table mat-table [dataSource]="teams()" class="mat-elevation-z1">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Team</th>
+        <td mat-cell *matCellDef="let team">{{ team.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="leagueName">
+        <th mat-header-cell *matHeaderCellDef>League</th>
+        <td mat-cell *matCellDef="let team">{{ team.leagueName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="playerCount">
+        <th mat-header-cell *matHeaderCellDef>Players</th>
+        <td mat-cell *matCellDef="let team">{{ team.playerIds.length }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="totalPoints">
+        <th mat-header-cell *matHeaderCellDef>Points</th>
+        <td mat-cell *matCellDef="let team">{{ team.totalPoints ?? 0 }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let team">
+          <button mat-button (click)="viewTeam(team)">Roster</button>
+          <button mat-button (click)="viewStandings(team)">Standings</button>
+          <button mat-icon-button (click)="deleteTeam(team)" aria-label="Delete team">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  } @else {
+    <p class="empty-state">You haven't created any teams yet. Join a league to get started.</p>
+  }
+</div>
