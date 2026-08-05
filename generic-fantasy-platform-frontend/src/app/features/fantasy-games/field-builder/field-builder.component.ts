@@ -8,6 +8,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
@@ -19,6 +20,7 @@ const ROTATION_ROW = -1;
 const BENCH_ROW_OFFSET = -2;
 const CELL_SIZE = 60;
 const DEFAULT_FIELD_SIZE = 5;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
 interface WorkingSlot {
   tempId: number;
@@ -60,6 +62,7 @@ interface CellRef {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressSpinnerModule,
     MatToolbarModule
   ],
   templateUrl: './field-builder.component.html',
@@ -106,6 +109,8 @@ export class FieldBuilderComponent implements OnInit {
     const url = this.thumbnailUrl();
     return url ? `${environment.apiUrl}${url}` : null;
   });
+  readonly uploadingBackground = signal(false);
+  readonly uploadingThumbnail = signal(false);
   readonly positions = signal<WorkingPosition[]>([]);
   readonly scoringRules = signal<WorkingScoringRule[]>([]);
 
@@ -191,14 +196,21 @@ export class FieldBuilderComponent implements OnInit {
     if (!file) {
       return;
     }
+    if (!this.validateImageFile(file)) {
+      input.value = '';
+      return;
+    }
 
+    this.uploadingBackground.set(true);
     this.fantasyGameService.uploadBackgroundImage(this.fantasyGameId, file).subscribe({
       next: (fantasyGame) => {
         this.backgroundImageUrl.set(fantasyGame.backgroundImageUrl);
+        this.uploadingBackground.set(false);
         input.value = '';
       },
       error: () => {
         this.snackBar.open('Failed to upload background image.', 'Close', { duration: 3000 });
+        this.uploadingBackground.set(false);
         input.value = '';
       }
     });
@@ -214,17 +226,36 @@ export class FieldBuilderComponent implements OnInit {
     if (!file) {
       return;
     }
+    if (!this.validateImageFile(file)) {
+      input.value = '';
+      return;
+    }
 
+    this.uploadingThumbnail.set(true);
     this.fantasyGameService.uploadThumbnailImage(this.fantasyGameId, file).subscribe({
       next: (fantasyGame) => {
         this.thumbnailUrl.set(fantasyGame.thumbnailUrl);
+        this.uploadingThumbnail.set(false);
         input.value = '';
       },
       error: () => {
         this.snackBar.open('Failed to upload thumbnail image.', 'Close', { duration: 3000 });
+        this.uploadingThumbnail.set(false);
         input.value = '';
       }
     });
+  }
+
+  private validateImageFile(file: File): boolean {
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Please select an image file.', 'Close', { duration: 3500 });
+      return false;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      this.snackBar.open('Image is too large. Maximum size is 10MB.', 'Close', { duration: 3500 });
+      return false;
+    }
+    return true;
   }
 
   removeThumbnailImage(): void {
