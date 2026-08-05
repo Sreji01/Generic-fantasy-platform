@@ -1,0 +1,23 @@
+.full-width {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.photo-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.photo-hint {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}

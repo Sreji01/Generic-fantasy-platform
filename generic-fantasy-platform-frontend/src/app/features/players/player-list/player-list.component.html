@@ -1,0 +1,84 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Back to fantasy game">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Players — {{ fantasyGameName() }}</span>
+  <span class="spacer"></span>
+  <button mat-flat-button (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Add Player
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput [ngModel]="searchTerm()" (ngModelChange)="onSearchChange($event)" placeholder="Search by name, position or team" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <table mat-table [dataSource]="pagedPlayers()" class="mat-elevation-z1">
+    <ng-container matColumnDef="photo">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let player">
+        @if (playerPhotoUrl(player); as url) {
+          <img [src]="url" alt="" class="photo-thumb" />
+        } @else {
+          <mat-icon class="photo-placeholder">account_circle</mat-icon>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="firstName">
+      <th mat-header-cell *matHeaderCellDef>First Name</th>
+      <td mat-cell *matCellDef="let player">{{ player.firstName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="lastName">
+      <th mat-header-cell *matHeaderCellDef>Last Name</th>
+      <td mat-cell *matCellDef="let player">{{ player.lastName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="position">
+      <th mat-header-cell *matHeaderCellDef>Position</th>
+      <td mat-cell *matCellDef="let player">{{ player.position }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="realTeam">
+      <th mat-header-cell *matHeaderCellDef>Real Team</th>
+      <td mat-cell *matCellDef="let player">{{ player.realTeam || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="price">
+      <th mat-header-cell *matHeaderCellDef>Price</th>
+      <td mat-cell *matCellDef="let player">{{ player.price != null ? '$' + player.price : '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let player">
+        <button mat-icon-button (click)="openEditDialog(player)" aria-label="Edit player">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="deletePlayer(player)" aria-label="Delete player">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  @if (filteredPlayers().length === 0) {
+    <p class="empty-state">No players yet. Add one to get started.</p>
+  } @else {
+    <mat-paginator
+      [length]="filteredPlayers().length"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
+  }
+</div>

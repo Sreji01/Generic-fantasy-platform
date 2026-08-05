@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -58,5 +59,12 @@ public class PlayerController {
                                         @AuthenticationPrincipal UserPrincipal principal) {
         playerService.delete(id, principal.getUser().getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<PlayerResponse> uploadImage(@PathVariable Long id,
+                                                       @RequestParam("file") MultipartFile file,
+                                                       @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(playerService.uploadImage(id, file, principal.getUser().getId()));
     }
 }

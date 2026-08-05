@@ -37,13 +37,24 @@ public class FileStorageService {
         return storeFantasyGameImage(fantasyGameId, file, "thumbnail");
     }
 
+    public String storePlayerImage(Long playerId, MultipartFile file) {
+        validateImage(file);
+
+        Path playerDir = uploadRoot.resolve("players").resolve(String.valueOf(playerId)).normalize();
+        try {
+            Files.createDirectories(playerDir);
+            String extension = extensionFor(file.getContentType());
+            String filename = "image-" + UUID.randomUUID() + extension;
+            Path target = playerDir.resolve(filename);
+            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            return "/uploads/players/" + playerId + "/" + filename;
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store file", e);
+        }
+    }
+
     private String storeFantasyGameImage(Long fantasyGameId, MultipartFile file, String kind) {
-        if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
-        }
-        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PNG, JPEG, WEBP or GIF images are allowed");
-        }
+        validateImage(file);
 
         Path fantasyGameDir = uploadRoot.resolve("domains").resolve(String.valueOf(fantasyGameId)).normalize();
         try {
@@ -55,6 +66,15 @@ public class FileStorageService {
             return "/uploads/domains/" + fantasyGameId + "/" + filename;
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store file", e);
+        }
+    }
+
+    private void validateImage(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
+        }
+        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PNG, JPEG, WEBP or GIF images are allowed");
         }
     }
 

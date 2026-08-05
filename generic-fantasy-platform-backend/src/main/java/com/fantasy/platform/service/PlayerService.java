@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final FantasyGameRepository fantasyGameRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     public PlayerResponse create(PlayerRequest request, Long userId) {
         FantasyGame fantasyGame = findFantasyGameOrThrow(request.fantasyGameId());
@@ -62,6 +64,15 @@ public class PlayerService {
         Player player = findPlayerOrThrow(id);
         requireFantasyGameOwnerOrAdmin(player.getFantasyGame(), userId);
         playerRepository.delete(player);
+    }
+
+    public PlayerResponse uploadImage(Long id, MultipartFile file, Long userId) {
+        Player player = findPlayerOrThrow(id);
+        requireFantasyGameOwnerOrAdmin(player.getFantasyGame(), userId);
+
+        player.setImageUrl(fileStorageService.storePlayerImage(id, file));
+        playerRepository.save(player);
+        return toResponse(player);
     }
 
     private void applyRequest(Player player, PlayerRequest request, FantasyGame fantasyGame) {

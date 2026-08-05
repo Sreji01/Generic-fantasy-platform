@@ -1,0 +1,35 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  padding: 24px;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+table {
+  width: 100%;
+}
+
+.empty-state {
+  margin-top: 16px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.photo-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
