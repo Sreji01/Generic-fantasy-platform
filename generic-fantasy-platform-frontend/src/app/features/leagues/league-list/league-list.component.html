@@ -11,7 +11,13 @@
 </mat-toolbar>
 
 <div class="content">
-  <table mat-table [dataSource]="leagues()" class="mat-elevation-z1">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput [ngModel]="searchTerm()" (ngModelChange)="onSearchChange($event)" placeholder="Search by name or fantasy game" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <table mat-table [dataSource]="pagedLeagues()" class="mat-elevation-z1">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
       <td mat-cell *matCellDef="let league">{{ league.name }}</td>
@@ -52,7 +58,15 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  @if (leagues().length === 0) {
+  @if (filteredLeagues().length === 0) {
     <p class="empty-state">No leagues yet. Create one to get started.</p>
+  } @else {
+    <mat-paginator
+      [length]="filteredLeagues().length"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
   }
 </div>

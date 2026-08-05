@@ -11,7 +11,13 @@
 </mat-toolbar>
 
 <div class="content">
-  <table mat-table [dataSource]="fantasyGames()" class="mat-elevation-z1">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput [ngModel]="searchTerm()" (ngModelChange)="onSearchChange($event)" placeholder="Search by name or description" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <table mat-table [dataSource]="pagedFantasyGames()" class="mat-elevation-z1">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
       <td mat-cell *matCellDef="let fantasyGame">{{ fantasyGame.name }}</td>
@@ -51,7 +57,15 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  @if (fantasyGames().length === 0) {
+  @if (filteredFantasyGames().length === 0) {
     <p class="empty-state">No fantasy games yet. Create one to get started.</p>
+  } @else {
+    <mat-paginator
+      [length]="filteredFantasyGames().length"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
   }
 </div>
