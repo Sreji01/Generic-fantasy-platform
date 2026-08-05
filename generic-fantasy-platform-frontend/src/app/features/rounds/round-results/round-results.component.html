@@ -1,0 +1,77 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Back to rounds">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Results — {{ round()?.name }}</span>
+  <span class="spacer"></span>
+  <button mat-flat-button color="accent" (click)="calculateScores()">
+    <mat-icon>calculate</mat-icon>
+    Calculate Scores
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  @if (rows().length > 0) {
+    <table mat-table [dataSource]="rows()" class="mat-elevation-z1">
+      <ng-container matColumnDef="player">
+        <th mat-header-cell *matHeaderCellDef>Player</th>
+        <td mat-cell *matCellDef="let row">{{ row.playerName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="position">
+        <th mat-header-cell *matHeaderCellDef>Position</th>
+        <td mat-cell *matCellDef="let row">{{ row.position }}</td>
+      </ng-container>
+
+      @for (ruleName of ruleNames(); track ruleName) {
+        <ng-container [matColumnDef]="ruleName">
+          <th mat-header-cell *matHeaderCellDef>{{ ruleName }}</th>
+          <td mat-cell *matCellDef="let row">
+            <input
+              matInput
+              type="number"
+              class="stat-input"
+              [ngModel]="row.stats[ruleName]"
+              (ngModelChange)="row.stats[ruleName] = $event"
+            />
+          </td>
+        </ng-container>
+      }
+
+      <ng-container matColumnDef="pointsEarned">
+        <th mat-header-cell *matHeaderCellDef>Points</th>
+        <td mat-cell *matCellDef="let row">{{ row.pointsEarned ?? '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-button (click)="saveRow(row)">Save</button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+    </table>
+  } @else {
+    <p class="empty-state">No players found for this fantasy game.</p>
+  }
+
+  @if (scores(); as s) {
+    <h3>Team Scores</h3>
+    <table mat-table [dataSource]="s" class="mat-elevation-z1 scores-table">
+      <ng-container matColumnDef="fantasyTeamName">
+        <th mat-header-cell *matHeaderCellDef>Team</th>
+        <td mat-cell *matCellDef="let score">{{ score.fantasyTeamName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="points">
+        <th mat-header-cell *matHeaderCellDef>Points</th>
+        <td mat-cell *matCellDef="let score">{{ score.points }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="scoreColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: scoreColumns;"></tr>
+    </table>
+  }
+</div>

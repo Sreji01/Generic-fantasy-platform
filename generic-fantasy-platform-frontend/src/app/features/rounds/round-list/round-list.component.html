@@ -1,0 +1,55 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()" aria-label="Back to fantasy game">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Rounds — {{ fantasyGameName() }}</span>
+  <span class="spacer"></span>
+  <button mat-flat-button color="accent" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    New Round
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  @if (rounds().length > 0) {
+    <table mat-table [dataSource]="rounds()" class="mat-elevation-z1">
+      <ng-container matColumnDef="roundNumber">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+        <td mat-cell *matCellDef="let round">{{ round.roundNumber }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let round">{{ round.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let round">{{ round.status }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="dates">
+        <th mat-header-cell *matHeaderCellDef>Dates</th>
+        <td mat-cell *matCellDef="let round">{{ round.startDate ?? '—' }} – {{ round.endDate ?? '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let round">
+          <button mat-button (click)="enterResults(round)">Enter Results</button>
+          <button mat-icon-button (click)="openEditDialog(round)" aria-label="Edit round">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteRound(round)" aria-label="Delete round">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  } @else {
+    <p class="empty-state">No rounds yet. Create one to start entering results.</p>
+  }
+</div>
