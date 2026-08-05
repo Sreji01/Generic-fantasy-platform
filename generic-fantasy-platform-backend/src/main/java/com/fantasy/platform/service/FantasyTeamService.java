@@ -6,11 +6,13 @@ import com.fantasy.platform.dto.fantasyteam.StandingEntry;
 import com.fantasy.platform.entity.FantasyTeam;
 import com.fantasy.platform.entity.League;
 import com.fantasy.platform.entity.Player;
+import com.fantasy.platform.entity.RoundStatus;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.FantasyTeamRepository;
 import com.fantasy.platform.repository.LeagueRepository;
 import com.fantasy.platform.repository.PlayerRepository;
+import com.fantasy.platform.repository.RoundRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,11 +33,18 @@ public class FantasyTeamService {
     private final FantasyTeamRepository fantasyTeamRepository;
     private final LeagueRepository leagueRepository;
     private final PlayerRepository playerRepository;
+    private final RoundRepository roundRepository;
     private final UserRepository userRepository;
 
     public FantasyTeamResponse create(FantasyTeamRequest request, Long userId) {
         User user = findUserOrThrow(userId);
         League league = findLeagueOrThrow(request.leagueId());
+
+        if (fantasyTeamRepository.existsByUserIdAndLeagueId(userId, league.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You already have a team in this league");
+        }
+        requireTransfersUnlocked(league, user);
+
         List<Player> players = resolvePlayers(request.playerIds(), league);
 
         FantasyTeam team = new FantasyTeam();
@@ -84,9 +93,11 @@ public class FantasyTeamService {
 
     public FantasyTeamResponse update(Long id, FantasyTeamRequest request, Long userId) {
         FantasyTeam team = findTeamOrThrow(id);
-        requireOwnerOrAdmin(team, userId);
+        User currentUser = requireOwnerOrAdmin(team, userId);
 
         League league = findLeagueOrThrow(request.leagueId());
+        requireTransfersUnlocked(league, currentUser);
+
         List<Player> players = resolvePlayers(request.playerIds(), league);
         applyRequest(team, request, league, players);
 
@@ -151,7 +162,7 @@ public class FantasyTeamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    private void requireOwnerOrAdmin(FantasyTeam team, Long userId) {
+    private User requireOwnerOrAdmin(FantasyTeam team, Long userId) {
         User currentUser = findUserOrThrow(userId);
 
         boolean isOwner = team.getUser().getId().equals(currentUser.getId());
@@ -159,6 +170,17 @@ public class FantasyTeamService {
 
         if (!isOwner && !isAdmin) {
             throw new AccessDeniedException("Only the team owner or an admin can manage this fantasy team");
+        }
+        return currentUser;
+    }
+
+    private void requireTransfersUnlocked(League league, User currentUser) {
+        if (currentUser.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        boolean hasActiveRound = roundRepository.existsByFantasyGameIdAndStatus(league.getFantasyGame().getId(), RoundStatus.ACTIVE);
+        if (hasActiveRound) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Team changes are locked while a round is active");
         }
     }
 
