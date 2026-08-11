@@ -35,9 +35,13 @@ public class FantasyTeamController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FantasyTeamResponse>> getAll(@RequestParam(required = false) Long leagueId) {
+    public ResponseEntity<List<FantasyTeamResponse>> getAll(@RequestParam(required = false) Long leagueId,
+                                                              @RequestParam(required = false) Long fantasyGameId) {
         if (leagueId != null) {
             return ResponseEntity.ok(fantasyTeamService.getByLeague(leagueId));
+        }
+        if (fantasyGameId != null) {
+            return ResponseEntity.ok(fantasyTeamService.getByFantasyGame(fantasyGameId));
         }
         return ResponseEntity.ok(fantasyTeamService.getAll());
     }
@@ -48,8 +52,9 @@ public class FantasyTeamController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<FantasyTeamResponse>> getMine(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(fantasyTeamService.getByUser(principal.getUser().getId()));
+    public ResponseEntity<List<FantasyTeamResponse>> getMine(@RequestParam(required = false) Long fantasyGameId,
+                                                               @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(fantasyTeamService.getByUser(principal.getUser().getId(), fantasyGameId));
     }
 
     @GetMapping("/{id}")
@@ -69,5 +74,19 @@ public class FantasyTeamController {
                                         @AuthenticationPrincipal UserPrincipal principal) {
         fantasyTeamService.delete(id, principal.getUser().getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/leagues/{leagueId}")
+    public ResponseEntity<FantasyTeamResponse> joinLeague(@PathVariable Long id,
+                                                            @PathVariable Long leagueId,
+                                                            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(fantasyTeamService.joinLeague(id, leagueId, principal.getUser().getId()));
+    }
+
+    @DeleteMapping("/{id}/leagues/{leagueId}")
+    public ResponseEntity<FantasyTeamResponse> leaveLeague(@PathVariable Long id,
+                                                             @PathVariable Long leagueId,
+                                                             @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(fantasyTeamService.leaveLeague(id, leagueId, principal.getUser().getId()));
     }
 }

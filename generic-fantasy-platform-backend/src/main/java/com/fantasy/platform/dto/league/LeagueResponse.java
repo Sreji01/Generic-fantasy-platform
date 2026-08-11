@@ -2,7 +2,6 @@ package com.fantasy.platform.dto.league;
 
 import com.fantasy.platform.entity.LeagueStatus;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record LeagueResponse(
@@ -15,7 +14,6 @@ public record LeagueResponse(
         LocalDate endDate,
         LeagueStatus status,
         Integer maxPlayersPerTeam,
-        BigDecimal budget,
         Integer participantCount,
         Boolean isPublic
 ) {

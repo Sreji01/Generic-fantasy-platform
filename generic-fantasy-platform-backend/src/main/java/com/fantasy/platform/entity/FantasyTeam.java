@@ -42,8 +42,8 @@ public class FantasyTeam {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "league_id", nullable = false)
-    private League league;
+    @JoinColumn(name = "domain_id", nullable = false)
+    private FantasyGame fantasyGame;
 
     @Column(name = "total_points")
     private Double totalPoints = 0.0;
@@ -60,6 +60,16 @@ public class FantasyTeam {
             inverseJoinColumns = @JoinColumn(name = "player_id")
     )
     private List<Player> players = new ArrayList<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany
+    @JoinTable(
+            name = "fantasy_team_leagues",
+            joinColumns = @JoinColumn(name = "fantasy_team_id"),
+            inverseJoinColumns = @JoinColumn(name = "league_id")
+    )
+    private List<League> leagues = new ArrayList<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

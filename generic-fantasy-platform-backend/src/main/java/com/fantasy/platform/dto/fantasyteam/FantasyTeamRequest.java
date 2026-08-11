@@ -8,7 +8,7 @@ import java.util.List;
 
 public record FantasyTeamRequest(
         @NotBlank String name,
-        @NotNull Long leagueId,
+        @NotNull Long fantasyGameId,
         @NotEmpty List<Long> playerIds
 ) {
 }

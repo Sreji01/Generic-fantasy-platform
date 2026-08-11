@@ -60,7 +60,7 @@ public class ScoreService {
                         pr -> pr.getPointsEarned() != null ? pr.getPointsEarned() : 0.0,
                         (a, b) -> b));
 
-        List<FantasyTeam> teams = fantasyTeamRepository.findByLeagueFantasyGameId(round.getFantasyGame().getId());
+        List<FantasyTeam> teams = fantasyTeamRepository.findByFantasyGameId(round.getFantasyGame().getId());
 
         return teams.stream()
                 .map(team -> calculateForTeam(team, round, pointsByPlayerId))
@@ -163,7 +163,7 @@ public class ScoreService {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        boolean isOwner = team.getLeague().getFantasyGame().getCreatedBy().getId().equals(currentUser.getId());
+        boolean isOwner = team.getFantasyGame().getCreatedBy().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
         if (!isOwner && !isAdmin) {
@@ -184,7 +184,7 @@ public class ScoreService {
     }
 
     private void requireSameFantasyGame(FantasyTeam team, Round round) {
-        if (!team.getLeague().getFantasyGame().getId().equals(round.getFantasyGame().getId())) {
+        if (!team.getFantasyGame().getId().equals(round.getFantasyGame().getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fantasy team and round must belong to the same fantasyGame");
         }
     }

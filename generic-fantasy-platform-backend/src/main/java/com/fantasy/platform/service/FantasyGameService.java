@@ -13,6 +13,7 @@ import com.fantasy.platform.dto.fantasygame.ScoringRulePositionValueResponse;
 import com.fantasy.platform.entity.FantasyGame;
 import com.fantasy.platform.entity.FantasyGamePickPosition;
 import com.fantasy.platform.entity.FantasyGamePosition;
+import com.fantasy.platform.entity.FantasyTeam;
 import com.fantasy.platform.entity.PickPositionSlot;
 import com.fantasy.platform.entity.PositionSlot;
 import com.fantasy.platform.entity.ScoringRule;
@@ -20,6 +21,7 @@ import com.fantasy.platform.entity.ScoringRulePositionValue;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.FantasyGameRepository;
+import com.fantasy.platform.repository.FantasyTeamRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,7 @@ import java.util.List;
 public class FantasyGameService {
 
     private final FantasyGameRepository fantasyGameRepository;
+    private final FantasyTeamRepository fantasyTeamRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
 
@@ -127,6 +130,10 @@ public class FantasyGameService {
     public void delete(Long id, Long userId) {
         FantasyGame fantasyGame = findFantasyGameOrThrow(id);
         requireOwnerOrAdmin(fantasyGame, userId);
+
+        List<FantasyTeam> teams = fantasyTeamRepository.findByFantasyGameId(id);
+        fantasyTeamRepository.deleteAll(teams);
+
         fantasyGameRepository.delete(fantasyGame);
     }
 

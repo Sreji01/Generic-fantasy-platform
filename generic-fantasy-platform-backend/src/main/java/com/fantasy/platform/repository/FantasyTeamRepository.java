@@ -9,9 +9,11 @@ public interface FantasyTeamRepository extends JpaRepository<FantasyTeam, Long> 
 
     List<FantasyTeam> findByUserId(Long userId);
 
-    List<FantasyTeam> findByLeagueId(Long leagueId);
+    List<FantasyTeam> findByFantasyGameId(Long fantasyGameId);
 
-    List<FantasyTeam> findByLeagueFantasyGameId(Long fantasyGameId);
+    List<FantasyTeam> findByUserIdAndFantasyGameId(Long userId, Long fantasyGameId);
 
-    boolean existsByUserIdAndLeagueId(Long userId, Long leagueId);
+    List<FantasyTeam> findByLeaguesId(Long leagueId);
+
+    long countByUserIdAndFantasyGameId(Long userId, Long fantasyGameId);
 }

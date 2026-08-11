@@ -8,10 +8,11 @@ public record FantasyTeamResponse(
         String name,
         Long userId,
         String username,
-        Long leagueId,
-        String leagueName,
+        Long fantasyGameId,
+        String fantasyGameName,
         Double totalPoints,
         LocalDateTime createdAt,
-        List<Long> playerIds
+        List<Long> playerIds,
+        List<TeamLeagueSummary> leagues
 ) {
 }

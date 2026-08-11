@@ -3,10 +3,12 @@ package com.fantasy.platform.service;
 import com.fantasy.platform.dto.league.LeagueRequest;
 import com.fantasy.platform.dto.league.LeagueResponse;
 import com.fantasy.platform.entity.FantasyGame;
+import com.fantasy.platform.entity.FantasyTeam;
 import com.fantasy.platform.entity.League;
 import com.fantasy.platform.entity.User;
 import com.fantasy.platform.entity.UserRole;
 import com.fantasy.platform.repository.FantasyGameRepository;
+import com.fantasy.platform.repository.FantasyTeamRepository;
 import com.fantasy.platform.repository.LeagueRepository;
 import com.fantasy.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class LeagueService {
 
     private final LeagueRepository leagueRepository;
     private final FantasyGameRepository fantasyGameRepository;
+    private final FantasyTeamRepository fantasyTeamRepository;
     private final UserRepository userRepository;
 
     public LeagueResponse create(LeagueRequest request) {
@@ -61,6 +64,13 @@ public class LeagueService {
     public void delete(Long id, Long userId) {
         League league = findLeagueOrThrow(id);
         requireAdmin(userId);
+
+        List<FantasyTeam> teams = fantasyTeamRepository.findByLeaguesId(id);
+        for (FantasyTeam team : teams) {
+            team.getLeagues().removeIf(l -> l.getId().equals(id));
+            fantasyTeamRepository.save(team);
+        }
+
         leagueRepository.delete(league);
     }
 
@@ -72,7 +82,6 @@ public class LeagueService {
         league.setEndDate(request.endDate());
         league.setStatus(request.status());
         league.setMaxPlayersPerTeam(request.maxPlayersPerTeam());
-        league.setBudget(request.budget());
         league.setIsPublic(request.isPublic() != null ? request.isPublic() : true);
     }
 
@@ -106,7 +115,6 @@ public class LeagueService {
                 league.getEndDate(),
                 league.getStatus(),
                 league.getMaxPlayersPerTeam(),
-                league.getBudget(),
                 league.getFantasyTeams().size(),
                 league.getIsPublic()
         );
