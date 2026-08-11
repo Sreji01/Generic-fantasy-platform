@@ -11,7 +11,9 @@ import com.fantasy.platform.dto.fantasygame.PositionSlotResponse;
 import com.fantasy.platform.dto.fantasygame.ScoringRulePositionValueRequest;
 import com.fantasy.platform.dto.fantasygame.ScoringRulePositionValueResponse;
 import com.fantasy.platform.entity.FantasyGame;
+import com.fantasy.platform.entity.FantasyGamePickPosition;
 import com.fantasy.platform.entity.FantasyGamePosition;
+import com.fantasy.platform.entity.PickPositionSlot;
 import com.fantasy.platform.entity.PositionSlot;
 import com.fantasy.platform.entity.ScoringRule;
 import com.fantasy.platform.entity.ScoringRulePositionValue;
@@ -39,6 +41,7 @@ public class FantasyGameService {
 
     public FantasyGameResponse create(FantasyGameRequest request, Long userId) {
         User currentUser = findUserOrThrow(userId);
+        validatePickField(request);
 
         FantasyGame fantasyGame = new FantasyGame();
         fantasyGame.setName(request.name());
@@ -47,10 +50,16 @@ public class FantasyGameService {
         fantasyGame.setFieldCols(request.fieldCols());
         fantasyGame.setBenchRows(request.benchRows());
         fantasyGame.setBenchCols(request.benchCols());
+        fantasyGame.setPickFieldRows(request.pickFieldRows());
+        fantasyGame.setPickFieldCols(request.pickFieldCols());
+        fantasyGame.setPickBenchRows(request.pickBenchRows());
+        fantasyGame.setPickBenchCols(request.pickBenchCols());
+        fantasyGame.setBudget(request.budget());
         fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
         fantasyGame.setThumbnailUrl(request.thumbnailUrl());
         fantasyGame.setCreatedBy(currentUser);
         fantasyGame.setPositions(buildPositions(request.positions(), fantasyGame));
+        fantasyGame.setPickPositions(buildPickPositions(request.pickPositions(), fantasyGame));
         fantasyGame.setScoringRules(buildScoringRules(request.scoringRules(), fantasyGame));
 
         fantasyGameRepository.save(fantasyGame);
@@ -68,6 +77,7 @@ public class FantasyGameService {
     public FantasyGameResponse update(Long id, FantasyGameRequest request, Long userId) {
         FantasyGame fantasyGame = findFantasyGameOrThrow(id);
         requireOwnerOrAdmin(fantasyGame, userId);
+        validatePickField(request);
 
         fantasyGame.setName(request.name());
         fantasyGame.setDescription(request.description());
@@ -75,11 +85,19 @@ public class FantasyGameService {
         fantasyGame.setFieldCols(request.fieldCols());
         fantasyGame.setBenchRows(request.benchRows());
         fantasyGame.setBenchCols(request.benchCols());
+        fantasyGame.setPickFieldRows(request.pickFieldRows());
+        fantasyGame.setPickFieldCols(request.pickFieldCols());
+        fantasyGame.setPickBenchRows(request.pickBenchRows());
+        fantasyGame.setPickBenchCols(request.pickBenchCols());
+        fantasyGame.setBudget(request.budget());
         fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
         fantasyGame.setThumbnailUrl(request.thumbnailUrl());
 
         fantasyGame.getPositions().clear();
         fantasyGame.getPositions().addAll(buildPositions(request.positions(), fantasyGame));
+
+        fantasyGame.getPickPositions().clear();
+        fantasyGame.getPickPositions().addAll(buildPickPositions(request.pickPositions(), fantasyGame));
 
         fantasyGame.getScoringRules().clear();
         fantasyGame.getScoringRules().addAll(buildScoringRules(request.scoringRules(), fantasyGame));
@@ -122,6 +140,17 @@ public class FantasyGameService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
+    private void validatePickField(FantasyGameRequest request) {
+        if (request.pickFieldRows() != null && request.pickFieldRows() > request.fieldRows()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Pick Team Field height cannot exceed the main field height");
+        }
+        if (request.pickFieldCols() != null && request.pickFieldCols() > request.fieldCols()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Pick Team Field width cannot exceed the main field width");
+        }
+    }
+
     private void requireOwnerOrAdmin(FantasyGame fantasyGame, Long userId) {
         User currentUser = findUserOrThrow(userId);
 
@@ -155,6 +184,36 @@ public class FantasyGameService {
         List<PositionSlot> slots = new ArrayList<>();
         for (PositionSlotRequest request : requests) {
             PositionSlot slot = new PositionSlot();
+            slot.setRowIndex(request.rowIndex());
+            slot.setColIndex(request.colIndex());
+            slot.setPosition(position);
+            slots.add(slot);
+        }
+        return slots;
+    }
+
+    private List<FantasyGamePickPosition> buildPickPositions(List<FantasyGamePositionRequest> requests, FantasyGame fantasyGame) {
+        if (requests == null) {
+            return new ArrayList<>();
+        }
+        List<FantasyGamePickPosition> positions = new ArrayList<>();
+        for (FantasyGamePositionRequest request : requests) {
+            FantasyGamePickPosition position = new FantasyGamePickPosition();
+            position.setName(request.name());
+            position.setFantasyGame(fantasyGame);
+            position.setSlots(buildPickSlots(request.slots(), position));
+            positions.add(position);
+        }
+        return positions;
+    }
+
+    private List<PickPositionSlot> buildPickSlots(List<PositionSlotRequest> requests, FantasyGamePickPosition position) {
+        if (requests == null) {
+            return new ArrayList<>();
+        }
+        List<PickPositionSlot> slots = new ArrayList<>();
+        for (PositionSlotRequest request : requests) {
+            PickPositionSlot slot = new PickPositionSlot();
             slot.setRowIndex(request.rowIndex());
             slot.setColIndex(request.colIndex());
             slot.setPosition(position);
@@ -218,6 +277,16 @@ public class FantasyGameService {
                 ))
                 .toList();
 
+        List<FantasyGamePositionResponse> pickPositions = fantasyGame.getPickPositions().stream()
+                .map(p -> new FantasyGamePositionResponse(
+                        p.getId(),
+                        p.getName(),
+                        p.getSlots().stream()
+                                .map(s -> new PositionSlotResponse(s.getId(), s.getRowIndex(), s.getColIndex()))
+                                .toList()
+                ))
+                .toList();
+
         List<FantasyGameScoringRuleResponse> scoringRules = fantasyGame.getScoringRules().stream()
                 .map(r -> new FantasyGameScoringRuleResponse(
                         r.getId(),
@@ -238,11 +307,17 @@ public class FantasyGameService {
                 fantasyGame.getFieldCols(),
                 fantasyGame.getBenchRows(),
                 fantasyGame.getBenchCols(),
+                fantasyGame.getPickFieldRows(),
+                fantasyGame.getPickFieldCols(),
+                fantasyGame.getPickBenchRows(),
+                fantasyGame.getPickBenchCols(),
+                fantasyGame.getBudget(),
                 fantasyGame.getBackgroundImageUrl(),
                 fantasyGame.getThumbnailUrl(),
                 fantasyGame.getPlayers().size(),
                 scoringRules,
                 positions,
+                pickPositions,
                 fantasyGame.getCreatedBy().getId(),
                 fantasyGame.getCreatedBy().getUsername()
         );

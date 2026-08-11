@@ -47,6 +47,21 @@ public class FantasyGame {
     @Column(name = "bench_cols")
     private Integer benchCols;
 
+    @Column(name = "pick_field_rows")
+    private Integer pickFieldRows;
+
+    @Column(name = "pick_field_cols")
+    private Integer pickFieldCols;
+
+    @Column(name = "pick_bench_rows")
+    private Integer pickBenchRows;
+
+    @Column(name = "pick_bench_cols")
+    private Integer pickBenchCols;
+
+    @Column(name = "budget")
+    private Double budget;
+
     @Column(name = "background_image_url")
     private String backgroundImageUrl;
 
@@ -62,6 +77,11 @@ public class FantasyGame {
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FantasyGamePosition> positions = new ArrayList<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "fantasyGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FantasyGamePickPosition> pickPositions = new ArrayList<>();
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
