@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,7 +16,15 @@ export interface RoundFormDialogData extends Partial<RoundResponse> {
 @Component({
   selector: 'app-round-form-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule
+  ],
   templateUrl: './round-form-dialog.component.html',
   styleUrl: './round-form-dialog.component.scss'
 })
@@ -30,8 +39,8 @@ export class RoundFormDialogComponent {
   readonly form = this.fb.group({
     name: [this.data.name ?? '', [Validators.required]],
     roundNumber: [this.data.roundNumber ?? 1, [Validators.required]],
-    startDate: [this.data.startDate ?? ''],
-    endDate: [this.data.endDate ?? ''],
+    startDate: [this.data.startDate ? new Date(this.data.startDate) : null],
+    endDate: [this.data.endDate ? new Date(this.data.endDate) : null],
     status: [this.data.status ?? ('UPCOMING' as RoundStatus), [Validators.required]]
   });
 
@@ -46,8 +55,8 @@ export class RoundFormDialogComponent {
       name: raw.name ?? '',
       roundNumber: raw.roundNumber as number,
       fantasyGameId: this.data.fantasyGameId,
-      startDate: raw.startDate || undefined,
-      endDate: raw.endDate || undefined,
+      startDate: this.toIsoDate(raw.startDate),
+      endDate: this.toIsoDate(raw.endDate),
       status: raw.status as RoundStatus
     };
 
@@ -56,5 +65,15 @@ export class RoundFormDialogComponent {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  private toIsoDate(value: Date | null | undefined): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

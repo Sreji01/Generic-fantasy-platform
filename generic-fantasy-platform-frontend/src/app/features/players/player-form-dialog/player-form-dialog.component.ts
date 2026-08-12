@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { PlayerService } from '../../../core/services/player.service';
@@ -24,7 +25,8 @@ const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSelectModule
   ],
   templateUrl: './player-form-dialog.component.html',
   styleUrl: './player-form-dialog.component.scss'
@@ -34,7 +36,9 @@ export class PlayerFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<PlayerFormDialogComponent>);
   private readonly playerService = inject(PlayerService);
   private readonly snackBar = inject(MatSnackBar);
-  readonly data = inject<(Partial<PlayerResponse> & { fantasyGameId: number }) | null>(MAT_DIALOG_DATA);
+  readonly data = inject<(Partial<PlayerResponse> & { fantasyGameId: number; positions?: string[] }) | null>(MAT_DIALOG_DATA);
+
+  readonly positions = this.data?.positions ?? [];
 
   readonly isEditMode = this.data?.id != null;
   readonly imageUrl = signal<string | null>(this.data?.imageUrl ?? null);

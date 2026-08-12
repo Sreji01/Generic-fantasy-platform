@@ -20,7 +20,14 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Position</mat-label>
-      <input matInput formControlName="position" placeholder="e.g. GK" />
+      <mat-select formControlName="position">
+        @for (position of positions; track position) {
+          <mat-option [value]="position">{{ position }}</mat-option>
+        }
+      </mat-select>
+      @if (positions.length === 0) {
+        <mat-hint>No positions defined yet. Add positions in the Field Builder first.</mat-hint>
+      }
       @if (form.controls.position.invalid && form.controls.position.touched) {
         <mat-error>Position is required.</mat-error>
       }

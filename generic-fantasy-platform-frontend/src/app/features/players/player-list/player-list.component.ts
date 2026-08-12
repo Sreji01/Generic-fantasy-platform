@@ -49,6 +49,7 @@ export class PlayerListComponent implements OnInit {
 
   readonly displayedColumns = ['photo', 'firstName', 'lastName', 'position', 'realTeam', 'price', 'actions'];
   readonly fantasyGameName = signal('');
+  readonly positionNames = signal<string[]>([]);
   readonly players = signal<PlayerResponse[]>([]);
 
   readonly searchTerm = signal('');
@@ -75,7 +76,10 @@ export class PlayerListComponent implements OnInit {
 
   ngOnInit(): void {
     this.fantasyGameId = Number(this.route.snapshot.paramMap.get('id'));
-    this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => this.fantasyGameName.set(fantasyGame.name));
+    this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => {
+      this.fantasyGameName.set(fantasyGame.name);
+      this.positionNames.set(fantasyGame.positions.map((p) => p.name));
+    });
     this.load();
   }
 
@@ -98,7 +102,10 @@ export class PlayerListComponent implements OnInit {
   }
 
   openCreateDialog(): void {
-    const ref = this.dialog.open(PlayerFormDialogComponent, { data: { fantasyGameId: this.fantasyGameId }, width: '480px' });
+    const ref = this.dialog.open(PlayerFormDialogComponent, {
+      data: { fantasyGameId: this.fantasyGameId, positions: this.positionNames() },
+      width: '480px'
+    });
 
     ref.afterClosed().subscribe((result: PlayerRequest | undefined) => {
       if (!result) {
@@ -115,7 +122,10 @@ export class PlayerListComponent implements OnInit {
   }
 
   openEditDialog(player: PlayerResponse): void {
-    const ref = this.dialog.open(PlayerFormDialogComponent, { data: player, width: '480px' });
+    const ref = this.dialog.open(PlayerFormDialogComponent, {
+      data: { ...player, positions: this.positionNames() },
+      width: '480px'
+    });
 
     ref.afterClosed().subscribe((result: PlayerRequest | undefined) => {
       if (!result) {
