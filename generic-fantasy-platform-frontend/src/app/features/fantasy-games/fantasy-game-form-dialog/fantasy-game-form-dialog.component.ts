@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +21,16 @@ interface WorkingScoringRule {
 @Component({
   selector: 'app-fantasy-game-form-dialog',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule
+  ],
   templateUrl: './fantasy-game-form-dialog.component.html',
   styleUrl: './fantasy-game-form-dialog.component.scss'
 })
@@ -32,10 +42,12 @@ export class FantasyGameFormDialogComponent {
   private nextTempId = 1;
 
   readonly isEditMode = this.data !== null;
+  readonly availablePositions = (this.data?.positions ?? []).map((p) => p.name);
 
   readonly form = this.fb.group({
     name: [this.data?.name ?? '', [Validators.required]],
-    description: [this.data?.description ?? '']
+    description: [this.data?.description ?? ''],
+    budget: [this.data?.budget ?? null]
   });
 
   readonly scoringRules = signal<WorkingScoringRule[]>(
@@ -51,12 +63,16 @@ export class FantasyGameFormDialogComponent {
   showScoringRuleForm = false;
   editingRuleTempId: number | null = null;
   ruleFormName = '';
+  ruleFormVariesByPosition = false;
   ruleFormPoints = 0;
+  ruleFormPositionPoints: Record<string, number> = {};
 
   toggleScoringRuleForm(): void {
     this.showScoringRuleForm = !this.showScoringRuleForm;
     if (!this.showScoringRuleForm) {
       this.resetRuleForm();
+    } else if (this.editingRuleTempId === null) {
+      this.ruleFormPositionPoints = this.buildDefaultPositionPoints();
     }
   }
 
@@ -64,7 +80,12 @@ export class FantasyGameFormDialogComponent {
     this.showScoringRuleForm = true;
     this.editingRuleTempId = rule.tempId;
     this.ruleFormName = rule.name;
+    this.ruleFormVariesByPosition = rule.variesByPosition;
     this.ruleFormPoints = rule.points;
+    this.ruleFormPositionPoints = {
+      ...this.buildDefaultPositionPoints(),
+      ...Object.fromEntries(rule.positionValues.map((v) => [v.positionName, v.points]))
+    };
   }
 
   confirmScoringRule(): void {
@@ -72,26 +93,20 @@ export class FantasyGameFormDialogComponent {
       return;
     }
 
+    const ruleData = {
+      name: this.ruleFormName.trim(),
+      variesByPosition: this.ruleFormVariesByPosition,
+      points: this.ruleFormPoints,
+      positionValues: this.ruleFormVariesByPosition
+        ? Object.entries(this.ruleFormPositionPoints).map(([positionName, points]) => ({ positionName, points }))
+        : []
+    };
+
     if (this.editingRuleTempId !== null) {
       const editingId = this.editingRuleTempId;
-      this.scoringRules.update((rules) =>
-        rules.map((r) =>
-          r.tempId === editingId
-            ? { ...r, name: this.ruleFormName.trim(), points: this.ruleFormPoints, variesByPosition: false, positionValues: [] }
-            : r
-        )
-      );
+      this.scoringRules.update((rules) => rules.map((r) => (r.tempId === editingId ? { ...r, ...ruleData } : r)));
     } else {
-      this.scoringRules.update((rules) => [
-        ...rules,
-        {
-          tempId: this.nextTempId++,
-          name: this.ruleFormName.trim(),
-          points: this.ruleFormPoints,
-          variesByPosition: false,
-          positionValues: []
-        }
-      ]);
+      this.scoringRules.update((rules) => [...rules, { tempId: this.nextTempId++, ...ruleData }]);
     }
 
     this.resetRuleForm();
@@ -104,10 +119,20 @@ export class FantasyGameFormDialogComponent {
     }
   }
 
+  private buildDefaultPositionPoints(): Record<string, number> {
+    const map: Record<string, number> = {};
+    for (const name of this.availablePositions) {
+      map[name] = 0;
+    }
+    return map;
+  }
+
   private resetRuleForm(): void {
     this.editingRuleTempId = null;
     this.ruleFormName = '';
+    this.ruleFormVariesByPosition = false;
     this.ruleFormPoints = 0;
+    this.ruleFormPositionPoints = {};
   }
 
   save(): void {
@@ -124,9 +149,18 @@ export class FantasyGameFormDialogComponent {
       fieldCols: this.data?.fieldCols ?? 5,
       benchRows: this.data?.benchRows ?? undefined,
       benchCols: this.data?.benchCols ?? undefined,
+      pickFieldRows: this.data?.pickFieldRows ?? undefined,
+      pickFieldCols: this.data?.pickFieldCols ?? undefined,
+      pickBenchRows: this.data?.pickBenchRows ?? undefined,
+      pickBenchCols: this.data?.pickBenchCols ?? undefined,
+      budget: raw.budget ?? undefined,
       backgroundImageUrl: this.data?.backgroundImageUrl ?? undefined,
       thumbnailUrl: this.data?.thumbnailUrl ?? undefined,
       positions: (this.data?.positions ?? []).map((p) => ({
+        name: p.name,
+        slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
+      })),
+      pickPositions: (this.data?.pickPositions ?? []).map((p) => ({
         name: p.name,
         slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
       })),

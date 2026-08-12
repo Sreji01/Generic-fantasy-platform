@@ -1,10 +1,8 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button (click)="cancel()" aria-label="Back to fantasy games">
+  <button mat-icon-button (click)="cancel()" aria-label="Back to fantasy game details">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>Field Builder — {{ fantasyGameName() }}</span>
-  <span class="spacer"></span>
-  <button mat-flat-button (click)="save()">Save Field</button>
 </mat-toolbar>
 
 <div class="content">
@@ -81,29 +79,6 @@
       }
     </div>
 
-    <div class="add-form">
-      @if (!hasBench()) {
-        <button mat-flat-button type="button" (click)="createBench()">
-          <mat-icon>event_seat</mat-icon>
-          Create a Bench
-        </button>
-      } @else {
-        <form class="add-form" (ngSubmit)="applyBenchSize()">
-          <mat-form-field appearance="outline" class="points-field">
-            <mat-label>Bench Width</mat-label>
-            <input matInput type="number" name="benchWidth" [(ngModel)]="benchColsInput" min="1" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="points-field">
-            <mat-label>Bench Height</mat-label>
-            <input matInput type="number" name="benchHeight" [(ngModel)]="benchRowsInput" min="1" />
-          </mat-form-field>
-
-          <button mat-flat-button type="submit">Apply Bench Size</button>
-          <button mat-button type="button" (click)="removeBench()">Remove Bench</button>
-        </form>
-      }
-    </div>
   </div>
 
   <div cdkDropListGroup>
@@ -174,32 +149,146 @@
         }
       </div>
     </div>
+  </div>
 
-    @if (hasBench()) {
-      <div class="bench-area">
-        <h4 class="bench-label">Bench</h4>
-        <div
-          class="grid-field bench-grid"
-          [style.grid-template-columns]="'repeat(' + benchCols() + ', ' + cellSize + 'px)'"
-          [style.grid-template-rows]="'repeat(' + benchRows() + ', ' + cellSize + 'px)'"
-        >
-          @for (row of benchGridRows(); track row) {
-            @for (col of benchGridCols(); track col) {
+  @if (positions().length === 0) {
+    <p class="empty-state">No positions yet. Add one above — players will appear in the rotation.</p>
+  }
+
+  <div class="pick-field-section">
+    <div class="pick-field-header">
+      <h3>Pick Team Field</h3>
+      @if (!hasPickField()) {
+        <button mat-flat-button color="primary" type="button" (click)="createPickField()">
+          <mat-icon>add</mat-icon>
+          Create a Pick Team Field
+        </button>
+      } @else {
+        <button mat-button type="button" (click)="removePickField()">Remove Pick Team Field</button>
+      }
+    </div>
+
+    @if (!hasPickField()) {
+      <p class="empty-state">
+        Used when a player picks or changes their roster — lets you split the field into a smaller field plus a bench.
+      </p>
+    } @else {
+      <div class="toolbars-row">
+        <form class="add-form" (ngSubmit)="addPickPosition()">
+          <mat-form-field appearance="outline" class="position-name-field">
+            <mat-label>Position name</mat-label>
+            <input matInput name="pickPositionName" [(ngModel)]="pickNewPositionName" placeholder="e.g. GK" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Player count</mat-label>
+            <input matInput type="number" name="pickPositionCount" [(ngModel)]="pickNewPositionCount" min="1" />
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit">
+            <mat-icon>add</mat-icon>
+            Add Position
+          </button>
+        </form>
+
+        <form class="add-form" (ngSubmit)="applyPickFieldSize()">
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Width</mat-label>
+            <input matInput type="number" name="pickFieldWidth" [(ngModel)]="pickFieldColsInput" min="1" [max]="fieldCols()" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="points-field">
+            <mat-label>Height</mat-label>
+            <input matInput type="number" name="pickFieldHeight" [(ngModel)]="pickFieldRowsInput" min="1" [max]="fieldRows()" />
+          </mat-form-field>
+
+          <button mat-flat-button type="submit">Apply Size</button>
+          <span class="hint">Max {{ fieldCols() }} × {{ fieldRows() }}</span>
+        </form>
+
+        <div class="add-form">
+          @if (!hasPickBench()) {
+            <button mat-flat-button type="button" (click)="createPickBench()">
+              <mat-icon>event_seat</mat-icon>
+              Create a Bench
+            </button>
+          } @else {
+            <form class="add-form" (ngSubmit)="applyPickBenchSize()">
+              <mat-form-field appearance="outline" class="points-field">
+                <mat-label>Bench Width</mat-label>
+                <input matInput type="number" name="pickBenchWidth" [(ngModel)]="pickBenchColsInput" min="1" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="points-field">
+                <mat-label>Bench Height</mat-label>
+                <input matInput type="number" name="pickBenchHeight" [(ngModel)]="pickBenchRowsInput" min="1" />
+              </mat-form-field>
+
+              <button mat-flat-button type="submit">Apply Bench Size</button>
+              <button mat-button type="button" (click)="removePickBench()">Remove Bench</button>
+            </form>
+          }
+        </div>
+      </div>
+
+      <div cdkDropListGroup>
+        <div class="field-area">
+          <div
+            class="grid-field"
+            [class.has-background]="backgroundImageUrl()"
+            [style.grid-template-columns]="'repeat(' + pickFieldCols() + ', ' + cellSize + 'px)'"
+            [style.grid-template-rows]="'repeat(' + pickFieldRows() + ', ' + cellSize + 'px)'"
+            [style.background-image]="backgroundImageDisplayUrl() ? 'url(' + backgroundImageDisplayUrl() + ')' : null"
+          >
+            @for (row of pickGridRows(); track row) {
+              @for (col of pickGridCols(); track col) {
+                <div
+                  class="grid-cell"
+                  cdkDropList
+                  [id]="pickCellId(row, col)"
+                  [cdkDropListEnterPredicate]="canEnterPickCell(row, col)"
+                  (cdkDropListDropped)="onPickCellDrop($event, row, col)"
+                >
+                  @if (pickCellAt(row, col); as cell) {
+                    <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+                      <mat-icon class="player-icon">account_circle</mat-icon>
+                      <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+                      <button
+                        mat-icon-button
+                        class="remove-btn"
+                        (click)="removePickSlot(cell.position.tempId, cell.slot.tempId)"
+                        aria-label="Remove player"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </mat-card>
+                  }
+                </div>
+              }
+            }
+          </div>
+
+          <div
+            class="rotation"
+            [style.grid-template-columns]="'repeat(' + pickFieldCols() + ', ' + cellSize + 'px)'"
+            [style.grid-template-rows]="'repeat(' + pickFieldRows() + ', ' + cellSize + 'px)'"
+          >
+            @for (col of pickRotationSlots(); track col) {
               <div
-                class="grid-cell"
+                class="grid-cell rotation-cell"
                 cdkDropList
-                [id]="cellId(benchRowIndex(row), col)"
-                [cdkDropListEnterPredicate]="canEnterCell(benchRowIndex(row), col)"
-                (cdkDropListDropped)="onCellDrop($event, benchRowIndex(row), col)"
+                [id]="pickCellId(-1, col)"
+                [cdkDropListEnterPredicate]="canEnterPickCell(-1, col)"
+                (cdkDropListDropped)="onPickCellDrop($event, -1, col)"
               >
-                @if (cellAt(benchRowIndex(row), col); as cell) {
+                @if (pickCellAt(-1, col); as cell) {
                   <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
                     <mat-icon class="player-icon">account_circle</mat-icon>
                     <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
                     <button
                       mat-icon-button
                       class="remove-btn"
-                      (click)="removeSlot(cell.position.tempId, cell.slot.tempId)"
+                      (click)="removePickSlot(cell.position.tempId, cell.slot.tempId)"
                       aria-label="Remove player"
                     >
                       <mat-icon>close</mat-icon>
@@ -208,15 +297,53 @@
                 }
               </div>
             }
-          }
+          </div>
         </div>
+
+        @if (hasPickBench()) {
+          <div class="bench-area">
+            <h4 class="bench-label">Bench</h4>
+            <div
+              class="grid-field bench-grid"
+              [style.grid-template-columns]="'repeat(' + pickBenchCols() + ', ' + cellSize + 'px)'"
+              [style.grid-template-rows]="'repeat(' + pickBenchRows() + ', ' + cellSize + 'px)'"
+            >
+              @for (row of pickBenchGridRows(); track row) {
+                @for (col of pickBenchGridCols(); track col) {
+                  <div
+                    class="grid-cell"
+                    cdkDropList
+                    [id]="pickCellId(pickBenchRowIndex(row), col)"
+                    [cdkDropListEnterPredicate]="canEnterPickCell(pickBenchRowIndex(row), col)"
+                    (cdkDropListDropped)="onPickCellDrop($event, pickBenchRowIndex(row), col)"
+                  >
+                    @if (pickCellAt(pickBenchRowIndex(row), col); as cell) {
+                      <mat-card class="player-card" cdkDrag [cdkDragData]="cell">
+                        <mat-icon class="player-icon">account_circle</mat-icon>
+                        <span class="player-name">{{ cell.position.name }}{{ cell.slotNumber }}</span>
+                        <button
+                          mat-icon-button
+                          class="remove-btn"
+                          (click)="removePickSlot(cell.position.tempId, cell.slot.tempId)"
+                          aria-label="Remove player"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </mat-card>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
       </div>
+
+      @if (pickPositions().length === 0) {
+        <p class="empty-state">No positions yet in the Pick Team Field. Add one above — players will appear in the rotation.</p>
+      }
     }
   </div>
-
-  @if (positions().length === 0) {
-    <p class="empty-state">No positions yet. Add one above — players will appear in the rotation.</p>
-  }
 
   <div class="scoring-rules-section">
     <div class="scoring-rules-header">
@@ -229,7 +356,7 @@
 
     @if (showScoringRuleForm) {
       <form class="add-form scoring-rule-form" (ngSubmit)="confirmScoringRule()">
-        <mat-form-field appearance="outline" class="description-field">
+        <mat-form-field appearance="outline" class="description-field wide-field">
           <mat-label>Description</mat-label>
           <input matInput name="ruleName" [(ngModel)]="ruleFormName" placeholder="e.g. goal" />
         </mat-form-field>
@@ -302,5 +429,12 @@
     } @else {
       <p class="empty-state">No scoring rules yet.</p>
     }
+  </div>
+
+  <div class="save-row">
+    <button mat-flat-button color="primary" class="save-field-btn" (click)="save()">
+      <mat-icon>save</mat-icon>
+      Save Field
+    </button>
   </div>
 </div>

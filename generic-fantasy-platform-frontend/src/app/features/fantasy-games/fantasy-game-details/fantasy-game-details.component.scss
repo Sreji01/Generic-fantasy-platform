@@ -36,6 +36,12 @@ mat-toolbar {
   }
 }
 
+.field-section {
+  width: auto;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 h3 {
   margin: 0 0 8px;
 }
@@ -54,7 +60,7 @@ h3 {
 }
 
 .grid-cell {
-  border: 1px dashed rgba(0, 0, 0, 0.08);
+  border: 1px dashed rgba(0, 0, 0, 0.3);
   border-radius: 2px;
   display: flex;
   align-items: center;
@@ -82,16 +88,17 @@ h3 {
 }
 
 .player-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  line-height: 32px;
-  color: #6750a4;
+  font-size: 44px;
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  color: var(--mat-sys-primary);
 }
 
 .player-name {
-  font-size: 0.5rem;
-  line-height: 1.1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,8 +114,10 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -117,13 +126,84 @@ h3 {
 }
 
 .rule-points {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.rule-position-points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.position-point-chip {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  color: var(--mat-sys-primary);
+  white-space: nowrap;
 }
 
 .description {
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(255, 255, 255, 0.75);
   max-width: 700px;
   margin-bottom: 32px;
+}
+
+.budget-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border-radius: 16px;
+  padding: 6px 16px;
+  margin-bottom: 32px;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.my-teams-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 140px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  transition: filter 0.15s ease;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.team-card-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.team-card-points {
+  font-size: 0.8rem;
+  opacity: 0.85;
 }
 
 .leagues-header {
@@ -148,7 +228,7 @@ h3 {
     align-items: center;
     gap: 16px;
     padding: 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -174,17 +254,17 @@ h3 {
 
 .league-status {
   font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
 }
 
 .league-participants {
   font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .empty-state {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .lock-banner {

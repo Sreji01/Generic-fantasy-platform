@@ -22,11 +22,16 @@
 .rule-form {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
 
-  mat-form-field:not(.points-field) {
+  mat-form-field:not(.points-field):not(.wide-field) {
     flex: 1;
+  }
+
+  .wide-field {
+    flex: 1 1 100%;
   }
 
   button {
@@ -38,6 +43,17 @@
   width: 90px;
 }
 
+.position-points-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+
+  .points-field {
+    max-width: 120px;
+  }
+}
+
 .scoring-rules-list {
   list-style: none;
   margin: 0;
@@ -47,9 +63,34 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     padding: 4px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
+}
+
+.rule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-name {
+  font-weight: 500;
+}
+
+.rule-position-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.position-point-chip {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  color: var(--mat-sys-primary);
 }
 
 .rule-actions {
@@ -58,6 +99,6 @@
 }
 
 .empty-state {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
 }

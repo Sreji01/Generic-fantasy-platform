@@ -29,7 +29,30 @@
       <p class="description">{{ fantasyGame.description }}</p>
     }
 
-    <section class="detail-section">
+    @if (fantasyGame.budget != null) {
+      <p class="budget-badge">
+        <mat-icon>account_balance_wallet</mat-icon>
+        Budget: {{ fantasyGame.budget }}
+      </p>
+    }
+
+    <section class="detail-section my-teams-section">
+      <h3>My Teams</h3>
+      @if (myTeams().length > 0) {
+        <div class="my-teams-cards">
+          @for (team of myTeams(); track team.id) {
+            <button type="button" class="team-card" (click)="viewTeam(team)">
+              <span class="team-card-name">{{ team.name }}</span>
+              <span class="team-card-points">{{ team.totalPoints ?? 0 }} pts</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">You haven't created a team in this fantasy game yet.</p>
+      }
+    </section>
+
+    <section class="detail-section field-section">
       <h3>Field</h3>
       <div
         class="grid-field"
@@ -59,7 +82,15 @@
           @for (rule of fantasyGame.scoringRules; track rule.id) {
             <li>
               <span class="rule-name">{{ rule.name }}</span>
-              <span class="rule-points">{{ rule.points }} pts</span>
+              @if (rule.variesByPosition) {
+                <span class="rule-position-points">
+                  @for (value of rule.positionValues; track value.positionName) {
+                    <span class="position-point-chip">{{ value.positionName }}: {{ value.points }}</span>
+                  }
+                </span>
+              } @else {
+                <span class="rule-points">{{ rule.points }} pts</span>
+              }
             </li>
           }
         </ul>
@@ -75,17 +106,15 @@
           <mat-icon>add</mat-icon>
           Create League
         </button>
-        @if (popularLeagues().length > 0) {
-          <button
-            mat-flat-button
-            type="button"
-            [disabled]="transfersLocked() && !canBypassLock()"
-            (click)="openCreateTeamDialog()"
-          >
-            <mat-icon>group_add</mat-icon>
-            Create Team
-          </button>
-        }
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="transfersLocked() && !canBypassLock()"
+          (click)="createTeam()"
+        >
+          <mat-icon>group_add</mat-icon>
+          Create Team
+        </button>
       </div>
 
       @if (transfersLocked()) {
@@ -108,7 +137,7 @@
                 color="primary"
                 type="button"
                 [disabled]="transfersLocked() && !canBypassLock()"
-                (click)="openJoinLeagueDialog(league)"
+                (click)="joinLeague(league)"
               >
                 Join
               </button>

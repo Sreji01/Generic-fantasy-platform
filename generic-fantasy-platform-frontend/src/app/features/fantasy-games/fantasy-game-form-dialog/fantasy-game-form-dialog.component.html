@@ -15,6 +15,12 @@
       <textarea matInput formControlName="description" rows="2"></textarea>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Budget</mat-label>
+      <input matInput type="number" min="0" formControlName="budget" placeholder="e.g. 100" />
+      <mat-hint>Total budget each team has to spend on players.</mat-hint>
+    </mat-form-field>
+
     <div class="scoring-rules-section">
       <div class="scoring-rules-header">
         <h3>Scoring Rules</h3>
@@ -26,20 +32,45 @@
 
       @if (showScoringRuleForm) {
         <div class="rule-form">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="wide-field">
             <mat-label>Description</mat-label>
             <input matInput [(ngModel)]="ruleFormName" [ngModelOptions]="{standalone: true}" placeholder="e.g. goal" />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="points-field">
-            <mat-label>Points</mat-label>
-            <input matInput type="number" [(ngModel)]="ruleFormPoints" [ngModelOptions]="{standalone: true}" />
-          </mat-form-field>
+          @if (isEditMode) {
+            <mat-checkbox [(ngModel)]="ruleFormVariesByPosition" [ngModelOptions]="{standalone: true}">
+              Varies by position
+            </mat-checkbox>
+          }
+
+          @if (!ruleFormVariesByPosition) {
+            <mat-form-field appearance="outline" class="points-field">
+              <mat-label>Points</mat-label>
+              <input matInput type="number" [(ngModel)]="ruleFormPoints" [ngModelOptions]="{standalone: true}" />
+            </mat-form-field>
+          }
 
           <button mat-flat-button color="primary" type="button" (click)="confirmScoringRule()">
             {{ editingRuleTempId !== null ? 'Update' : 'Add' }}
           </button>
           <button mat-button type="button" (click)="toggleScoringRuleForm()">Cancel</button>
+
+          @if (isEditMode && ruleFormVariesByPosition) {
+            <div class="position-points-grid">
+              @if (availablePositions.length === 0) {
+                <p class="empty-state">
+                  No positions yet — add positions in the Field Builder first, then set per-position points here.
+                </p>
+              } @else {
+                @for (position of availablePositions; track position) {
+                  <mat-form-field appearance="outline" class="points-field">
+                    <mat-label>{{ position }}</mat-label>
+                    <input matInput type="number" [(ngModel)]="ruleFormPositionPoints[position]" [ngModelOptions]="{standalone: true}" />
+                  </mat-form-field>
+                }
+              }
+            </div>
+          }
         </div>
       }
 
@@ -47,7 +78,18 @@
         <ul class="scoring-rules-list">
           @for (rule of scoringRules(); track rule.tempId) {
             <li>
-              <span>{{ rule.name }} — {{ rule.variesByPosition ? 'varies by position' : rule.points + ' pts' }}</span>
+              <span class="rule-info">
+                <span class="rule-name">{{ rule.name }}</span>
+                @if (rule.variesByPosition) {
+                  <span class="rule-position-points">
+                    @for (value of rule.positionValues; track value.positionName) {
+                      <span class="position-point-chip">{{ value.positionName }}: {{ value.points }}</span>
+                    }
+                  </span>
+                } @else {
+                  <span>{{ rule.points }} pts</span>
+                }
+              </span>
               <span class="rule-actions">
                 <button mat-icon-button type="button" (click)="editScoringRule(rule)" aria-label="Edit scoring rule">
                   <mat-icon>edit</mat-icon>

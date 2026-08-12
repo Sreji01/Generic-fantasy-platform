@@ -8,10 +8,16 @@ export interface FantasyGameRequest {
   fieldCols: number;
   benchRows?: number;
   benchCols?: number;
+  pickFieldRows?: number;
+  pickFieldCols?: number;
+  pickBenchRows?: number;
+  pickBenchCols?: number;
+  budget?: number;
   backgroundImageUrl?: string;
   thumbnailUrl?: string;
   scoringRules: FantasyGameScoringRuleRequest[];
   positions: FantasyGamePositionRequest[];
+  pickPositions: FantasyGamePositionRequest[];
 }
 
 export interface FantasyGameResponse {
@@ -22,11 +28,17 @@ export interface FantasyGameResponse {
   fieldCols: number;
   benchRows: number | null;
   benchCols: number | null;
+  pickFieldRows: number | null;
+  pickFieldCols: number | null;
+  pickBenchRows: number | null;
+  pickBenchCols: number | null;
+  budget: number | null;
   backgroundImageUrl: string | null;
   thumbnailUrl: string | null;
   playerCount: number;
   scoringRules: FantasyGameScoringRuleResponse[];
   positions: FantasyGamePositionResponse[];
+  pickPositions: FantasyGamePositionResponse[];
   createdById: number;
   createdByUsername: string;
 }
