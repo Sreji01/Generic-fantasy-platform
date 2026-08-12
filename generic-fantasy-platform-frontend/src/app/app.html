@@ -1,1 +1,14 @@
+@if (isAuthenticated()) {
+  <mat-toolbar color="primary" class="app-header">
+    <a routerLink="/home" class="brand">FantasizeAnything</a>
+    <span class="spacer"></span>
+    @if (currentUser(); as user) {
+      <button mat-button (click)="goToProfile()">
+        <mat-icon>account_circle</mat-icon>
+        {{ user.username }}
+      </button>
+    }
+    <button mat-button (click)="logout()">Logout</button>
+  </mat-toolbar>
+}
 <router-outlet />

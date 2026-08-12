@@ -65,7 +65,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, #6750a4, #9575cd);
+  background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
 }
 
 .poster-scrim {
@@ -85,5 +85,5 @@
 }
 
 .empty-state {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }

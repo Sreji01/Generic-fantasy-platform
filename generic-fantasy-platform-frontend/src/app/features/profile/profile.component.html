@@ -1,0 +1,50 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goHome()" aria-label="Back to home">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Profile</span>
+</mat-toolbar>
+
+<div class="content">
+  @if (currentUser(); as user) {
+    <mat-card class="user-card">
+      <mat-icon class="user-avatar">account_circle</mat-icon>
+      <div class="user-info">
+        <h2>{{ user.username }}</h2>
+        <p>{{ user.email }}</p>
+        <span class="role-badge">{{ user.role }}</span>
+      </div>
+    </mat-card>
+  }
+
+  <h3>Manage</h3>
+  <div class="nav-links">
+    <a mat-flat-button routerLink="/fantasy-games">
+      <mat-icon>sports_esports</mat-icon>
+      Manage Fantasy Games
+    </a>
+    <a mat-flat-button routerLink="/leagues">
+      <mat-icon>emoji_events</mat-icon>
+      Manage Leagues
+    </a>
+    <a mat-flat-button routerLink="/leagues/browse">
+      <mat-icon>travel_explore</mat-icon>
+      Browse Public Leagues
+    </a>
+    <a mat-flat-button routerLink="/my-teams">
+      <mat-icon>groups</mat-icon>
+      My Teams
+    </a>
+    @if (isAdmin()) {
+      <a mat-flat-button routerLink="/admin">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Admin Panel
+      </a>
+    }
+  </div>
+
+  <button mat-stroked-button color="warn" class="logout-btn" (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Logout
+  </button>
+</div>

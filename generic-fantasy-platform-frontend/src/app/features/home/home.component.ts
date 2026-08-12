@@ -1,12 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatToolbarModule } from '@angular/material/toolbar';
 
-import { AuthService } from '../../core/services/auth.service';
 import { FantasyGameService } from '../../core/services/fantasy-game.service';
 import { FantasyGameRequest } from '../../core/models/fantasy-game.model';
 import { FantasyGameFormDialogComponent } from '../fantasy-games/fantasy-game-form-dialog/fantasy-game-form-dialog.component';
@@ -16,34 +14,15 @@ import { MyFantasyGamesComponent } from './my-fantasy-games/my-fantasy-games.com
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatToolbarModule,
-    RouterLink,
-    PopularFantasyGamesComponent,
-    MyFantasyGamesComponent
-  ],
+  imports: [MatButtonModule, MatIconModule, PopularFantasyGamesComponent, MyFantasyGamesComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  private readonly authService = inject(AuthService);
   private readonly fantasyGameService = inject(FantasyGameService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
-
-  readonly currentUser = this.authService.currentUser;
-
-  isAdmin(): boolean {
-    return this.authService.currentUser()?.role === 'ADMIN';
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.router.navigateByUrl('/login');
-  }
 
   openCreateFantasyGameDialog(): void {
     const ref = this.dialog.open(FantasyGameFormDialogComponent, { data: null, width: '600px', maxWidth: '600px' });

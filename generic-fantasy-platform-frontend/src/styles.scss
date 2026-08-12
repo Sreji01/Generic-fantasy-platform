@@ -3,12 +3,15 @@
 html {
   @include mat.theme((
     color: (
-      theme-type: light,
-      primary: mat.$violet-palette,
+      theme-type: dark,
+      primary: mat.$orange-palette,
     ),
     typography: Roboto,
     density: 0,
   ));
+
+  --mat-sys-background: #263238;
+  --mat-sys-primary: #FF6D00;
 }
 
 html, body {
@@ -18,4 +21,6 @@ html, body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--mat-sys-background);
+  color: var(--mat-sys-on-background);
 }

@@ -1,14 +1,6 @@
-<mat-toolbar color="primary">
-  <span>Generic Fantasy Platform</span>
-  <span class="spacer"></span>
-  @if (currentUser(); as user) {
-    <span class="username">Welcome, {{ user.username }}</span>
-  }
-  <button mat-button (click)="logout()">Logout</button>
-</mat-toolbar>
-
-<div class="create-fantasy-game-row">
-  <button mat-flat-button color="primary" (click)="openCreateFantasyGameDialog()">
+<div class="hero">
+  <h1>Welcome to FantasizeAnything</h1>
+  <button mat-flat-button color="primary" class="create-fantasy-game-btn" (click)="openCreateFantasyGameDialog()">
     <mat-icon>add</mat-icon>
     Create Your Fantasy Game
   </button>
@@ -16,16 +8,3 @@
 
 <app-popular-fantasy-games />
 <app-my-fantasy-games />
-
-<div class="content">
-  <p>You are logged in.</p>
-  <div class="nav-links">
-    <a mat-flat-button routerLink="/fantasy-games">Manage Fantasy Games</a>
-    <a mat-flat-button routerLink="/leagues">Manage Leagues</a>
-    <a mat-flat-button routerLink="/leagues/browse">Browse Public Leagues</a>
-    <a mat-flat-button routerLink="/my-teams">My Teams</a>
-    @if (isAdmin()) {
-      <a mat-flat-button routerLink="/admin">Admin Panel</a>
-    }
-  </div>
-</div>
