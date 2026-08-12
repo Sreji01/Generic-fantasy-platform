@@ -23,7 +23,7 @@ export class MyTeamsComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly snackBar = inject(MatSnackBar);
 
-  readonly displayedColumns = ['name', 'leagueName', 'playerCount', 'totalPoints', 'actions'];
+  readonly displayedColumns = ['name', 'fantasyGameName', 'playerCount', 'totalPoints', 'actions'];
   readonly teams = signal<FantasyTeamResponse[]>([]);
 
   ngOnInit(): void {
@@ -32,10 +32,6 @@ export class MyTeamsComponent implements OnInit {
 
   goHome(): void {
     this.router.navigateByUrl('/home');
-  }
-
-  viewStandings(team: FantasyTeamResponse): void {
-    this.router.navigate(['/leagues', team.leagueId, 'standings']);
   }
 
   viewTeam(team: FantasyTeamResponse): void {

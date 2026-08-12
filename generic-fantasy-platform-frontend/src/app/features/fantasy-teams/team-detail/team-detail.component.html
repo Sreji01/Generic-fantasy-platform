@@ -5,15 +5,6 @@
   <span>{{ team()?.name }}</span>
   <span class="spacer"></span>
   @if (canManage()) {
-    <button
-      mat-icon-button
-      [disabled]="!canEditRoster()"
-      (click)="editRoster()"
-      [matTooltip]="canEditRoster() ? 'Edit Roster' : 'Locked while a round is active'"
-      aria-label="Edit roster"
-    >
-      <mat-icon>swap_horiz</mat-icon>
-    </button>
     <button mat-icon-button (click)="deleteTeam()" matTooltip="Delete Team" aria-label="Delete team">
       <mat-icon>delete</mat-icon>
     </button>
@@ -23,54 +14,243 @@
 @if (team(); as team) {
   <div class="content">
     <div class="team-meta">
-      <span>{{ league()?.name }}</span>
+      <span>{{ team.fantasyGameName }}</span>
       <span>{{ team.totalPoints ?? 0 }} pts</span>
-      <button mat-button type="button" (click)="viewStandings()">Standings</button>
     </div>
 
     @if (transfersLocked()) {
       <p class="lock-banner">Transfers are locked while a round is active.</p>
     }
 
-    @if (fantasyGame(); as fantasyGame) {
-      <section class="detail-section">
-        <h3>Lineup</h3>
-        <div
-          class="grid-field"
-          [style.grid-template-columns]="'repeat(' + fantasyGame.fieldCols + ', ' + cellSize + 'px)'"
-          [style.grid-template-rows]="'repeat(' + fantasyGame.fieldRows + ', ' + cellSize + 'px)'"
-          [style.background-image]="backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null"
-        >
-          @for (row of gridRows(); track row) {
-            @for (col of gridCols(); track col) {
-              <div class="grid-cell">
-                @if (cellAt(row, col); as cell) {
-                  <mat-card class="player-card" [class.empty-slot]="!cell.player">
-                    <mat-icon class="player-icon">account_circle</mat-icon>
-                    <span class="player-name">
-                      {{ cell.player ? (cell.player.firstName + ' ' + cell.player.lastName) : cell.positionName }}
-                    </span>
-                  </mat-card>
-                }
-              </div>
-            }
-          }
-        </div>
-      </section>
-    }
-
-    @if (benchPlayers().length > 0) {
-      <section class="detail-section">
-        <h3>Bench</h3>
-        <ul class="bench-list">
-          @for (player of benchPlayers(); track player.id) {
+    <section class="detail-section">
+      <h3>Leagues</h3>
+      @if (team.leagues.length > 0) {
+        <ul class="leagues-list">
+          @for (league of team.leagues; track league.id) {
             <li>
-              <span class="player-name">{{ player.firstName }} {{ player.lastName }}</span>
-              <span class="player-position">{{ player.position }}</span>
+              <span class="league-name">{{ league.name }}</span>
+              <button mat-button type="button" (click)="viewStandings(league.id)">Standings</button>
+              <button mat-button type="button" (click)="leaveLeague(league.id)">Leave</button>
             </li>
           }
         </ul>
-      </section>
-    }
+      } @else {
+        <p class="empty-state">This team hasn't joined any league yet.</p>
+      }
+    </section>
+
+    <mat-tab-group class="team-tabs" animationDuration="150ms">
+      <mat-tab label="Pick Team">
+        <div class="tab-content">
+          @if (fantasyGame(); as fantasyGame) {
+            @if (hasPickField()) {
+              <section class="detail-section">
+                <div
+                  class="grid-field"
+                  [style.grid-template-columns]="'repeat(' + fantasyGame.pickFieldCols + ', ' + cellSize + 'px)'"
+                  [style.grid-template-rows]="'repeat(' + fantasyGame.pickFieldRows + ', ' + cellSize + 'px)'"
+                  [style.background-image]="backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null"
+                >
+                  @for (row of pickGridRows(); track row) {
+                    @for (col of pickGridCols(); track col) {
+                      <div class="grid-cell">
+                        @if (pickCellAt(row, col); as cell) {
+                          <mat-card class="player-card" [class.filled]="cell.player" [class.empty-slot]="!cell.player">
+                            <mat-icon class="player-icon">account_circle</mat-icon>
+                            <span class="player-name">
+                              {{ cell.player ? playerShortLabel(cell.player) : cell.positionName }}
+                            </span>
+                          </mat-card>
+                        }
+                      </div>
+                    }
+                  }
+                </div>
+              </section>
+
+              @if (pickBenchSlots().length > 0) {
+                <section class="detail-section">
+                  <h3>Bench</h3>
+                  <ul class="bench-list">
+                    @for (slot of pickBenchSlots(); track slot.row + '-' + slot.col) {
+                      <li>
+                        <span class="player-name">{{ slot.player ? playerShortLabel(slot.player) : '—' }}</span>
+                        <span class="player-position">{{ slot.positionName }}</span>
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
+            } @else {
+              <p class="empty-state">No pick field configured for this fantasy game.</p>
+            }
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Make Transfers">
+        <div class="tab-content">
+          <div class="transfer-summary">
+            <span>{{ rosterPlayers().length }} players</span>
+            @if (fantasyGame()?.budget != null) {
+              <span [class.over-limit]="overBudget()">{{ totalCost() }} / {{ fantasyGame()!.budget }} budget</span>
+            }
+            @if (hasUnsavedChanges()) {
+              <span class="unsaved-badge">Unsaved changes</span>
+            }
+          </div>
+          @if (overBudget()) {
+            <p class="warning">Team exceeds the budget.</p>
+          }
+
+          <div class="transfer-row">
+            <div class="field-column">
+              <div
+                class="grid-field"
+                [style.grid-template-columns]="'repeat(' + gridCols().length + ', ' + cellSize + 'px)'"
+                [style.grid-template-rows]="'repeat(' + gridRows().length + ', ' + cellSize + 'px)'"
+                [style.background-image]="backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null"
+              >
+                @for (row of gridRows(); track row) {
+                  @for (col of gridCols(); track col) {
+                    <div class="grid-cell">
+                      @if (cellAt(row, col); as cell) {
+                        <mat-card
+                          class="slot-card"
+                          [class.filled]="cell.player"
+                          [class.active-filter]="positionFilter() === cell.positionName"
+                          (click)="filterByPosition(cell.positionName)"
+                        >
+                          <mat-icon class="slot-icon">account_circle</mat-icon>
+                          <span class="slot-label">
+                            {{ cell.player ? playerShortLabel(cell.player) : cell.positionName }}
+                          </span>
+                          @if (cell.player && canEditRoster()) {
+                            <button
+                              mat-icon-button
+                              class="remove-btn"
+                              type="button"
+                              (click)="removePlayer(cell.player); $event.stopPropagation()"
+                              aria-label="Remove player"
+                            >
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          }
+                        </mat-card>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+
+              @if (benchSlots().length > 0) {
+                <div class="bench-row">
+                  <span class="bench-label">Bench</span>
+                  <div class="bench-cards">
+                    @for (cell of benchSlots(); track cell.row + '-' + cell.col) {
+                      <mat-card
+                        class="slot-card small"
+                        [class.filled]="cell.player"
+                        [class.active-filter]="positionFilter() === cell.positionName"
+                        (click)="filterByPosition(cell.positionName)"
+                      >
+                        <mat-icon class="slot-icon">account_circle</mat-icon>
+                        <span class="slot-label">
+                          {{ cell.player ? playerShortLabel(cell.player) : cell.positionName }}
+                        </span>
+                        @if (cell.player && canEditRoster()) {
+                          <button
+                            mat-icon-button
+                            class="remove-btn"
+                            type="button"
+                            (click)="removePlayer(cell.player); $event.stopPropagation()"
+                            aria-label="Remove player"
+                          >
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        }
+                      </mat-card>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="players-column">
+              <div class="position-chips">
+                <button mat-button type="button" [class.active]="positionFilter() === null" (click)="clearFilter()">All</button>
+                @for (position of positionNames(); track position) {
+                  <button mat-button type="button" [class.active]="positionFilter() === position" (click)="filterByPosition(position)">
+                    {{ position }}
+                  </button>
+                }
+              </div>
+
+              @if (filteredPlayers().length > 0) {
+                <ul class="players-list">
+                  @for (player of filteredPlayers(); track player.id) {
+                    <li [class.selected]="isSelected(player)">
+                      @if (playerPhotoUrl(player); as url) {
+                        <img [src]="url" alt="" class="player-photo" />
+                      } @else {
+                        <mat-icon class="player-icon">account_circle</mat-icon>
+                      }
+                      <span class="player-info">
+                        <span class="player-name">{{ player.firstName }} {{ player.lastName }}</span>
+                        <span class="player-meta">
+                          {{ player.position }}
+                          @if (player.realTeam) {
+                            · {{ player.realTeam }}
+                          }
+                        </span>
+                      </span>
+                      @if (player.price != null) {
+                        <span class="player-price">{{ player.price }}</span>
+                      }
+                      @if (isSelected(player)) {
+                        <button
+                          mat-icon-button
+                          color="primary"
+                          type="button"
+                          [disabled]="!canEditRoster()"
+                          (click)="removePlayer(player)"
+                          aria-label="Remove player"
+                          matTooltip="Remove from team"
+                        >
+                          <mat-icon>check_circle</mat-icon>
+                        </button>
+                      } @else {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [disabled]="!canAddPlayer(player)"
+                          (click)="addPlayer(player)"
+                          [matTooltip]="addPlayerReason(player)"
+                          aria-label="Add player"
+                        >
+                          <mat-icon>add_circle</mat-icon>
+                        </button>
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="empty-state">No players available.</p>
+              }
+            </div>
+          </div>
+
+          @if (canEditRoster()) {
+            <div class="save-row">
+              <button mat-button type="button" [disabled]="!hasUnsavedChanges()" (click)="discardChanges()">Discard Changes</button>
+              <button mat-flat-button color="primary" class="save-team-btn" type="button" [disabled]="!canSave()" (click)="saveTransfers()">
+                <mat-icon>save</mat-icon>
+                Save Transfers
+              </button>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 }

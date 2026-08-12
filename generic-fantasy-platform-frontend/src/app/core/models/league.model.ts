@@ -8,7 +8,6 @@ export interface LeagueRequest {
   endDate?: string;
   status: LeagueStatus;
   maxPlayersPerTeam?: number;
-  budget?: number;
   isPublic?: boolean;
 }
 
@@ -22,7 +21,6 @@ export interface LeagueResponse {
   endDate: string | null;
   status: LeagueStatus;
   maxPlayersPerTeam: number | null;
-  budget: number | null;
   participantCount: number;
   isPublic: boolean;
 }

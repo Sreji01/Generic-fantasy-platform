@@ -10,13 +10,20 @@ export class FantasyTeamService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/fantasy-teams`;
 
-  getAll(leagueId?: number): Observable<FantasyTeamResponse[]> {
-    const params = leagueId !== undefined ? new HttpParams().set('leagueId', leagueId) : undefined;
+  getAll(filters?: { leagueId?: number; fantasyGameId?: number }): Observable<FantasyTeamResponse[]> {
+    let params = new HttpParams();
+    if (filters?.leagueId !== undefined) {
+      params = params.set('leagueId', filters.leagueId);
+    }
+    if (filters?.fantasyGameId !== undefined) {
+      params = params.set('fantasyGameId', filters.fantasyGameId);
+    }
     return this.http.get<FantasyTeamResponse[]>(this.baseUrl, { params });
   }
 
-  getMine(): Observable<FantasyTeamResponse[]> {
-    return this.http.get<FantasyTeamResponse[]>(`${this.baseUrl}/me`);
+  getMine(fantasyGameId?: number): Observable<FantasyTeamResponse[]> {
+    const params = fantasyGameId !== undefined ? new HttpParams().set('fantasyGameId', fantasyGameId) : undefined;
+    return this.http.get<FantasyTeamResponse[]>(`${this.baseUrl}/me`, { params });
   }
 
   getStandings(leagueId: number): Observable<StandingEntry[]> {
@@ -38,5 +45,13 @@ export class FantasyTeamService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  joinLeague(teamId: number, leagueId: number): Observable<FantasyTeamResponse> {
+    return this.http.post<FantasyTeamResponse>(`${this.baseUrl}/${teamId}/leagues/${leagueId}`, {});
+  }
+
+  leaveLeague(teamId: number, leagueId: number): Observable<FantasyTeamResponse> {
+    return this.http.delete<FantasyTeamResponse>(`${this.baseUrl}/${teamId}/leagues/${leagueId}`);
   }
 }

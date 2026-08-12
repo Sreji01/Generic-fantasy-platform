@@ -1,52 +1,65 @@
-.spacer {
-  flex: 1 1 auto;
-}
-
 .content {
   padding: 24px;
-  max-width: 1300px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  gap: 12px;
 }
 
-.team-meta {
+.top-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.team-name-field {
+  width: 320px;
+}
+
+.summary-row {
+  display: flex;
+  gap: 24px;
+  font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.75);
-}
 
-.lock-banner {
-  color: #b3261e;
-  background: rgba(179, 38, 30, 0.08);
-  border-radius: 8px;
-  padding: 8px 16px;
-  margin-bottom: 16px;
-}
-
-.detail-section {
-  width: 100%;
-  max-width: 700px;
-  margin-bottom: 32px;
-
-  &:last-child {
-    margin-bottom: 0;
+  .over-limit {
+    color: #b3261e;
+    font-weight: 600;
   }
 }
 
-h3 {
-  margin: 0 0 8px;
+.warning {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.builder-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 120px;
+  margin-top: 8px;
+  flex-wrap: nowrap;
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+  }
+}
+
+.field-column {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
 }
 
 .grid-field {
   display: grid;
   gap: 2px;
   width: fit-content;
-  margin: 0 auto;
+  margin-top: 56px;
   background-color: #e3f2e1;
   background-size: cover;
   background-position: center;
@@ -63,146 +76,6 @@ h3 {
   justify-content: center;
   min-width: 0;
   min-height: 0;
-}
-
-.player-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  padding: 2px;
-  user-select: none;
-  position: relative;
-  overflow: hidden;
-
-  &.empty-slot {
-    opacity: 0.5;
-  }
-
-  &.filled {
-    border: 2px solid var(--mat-sys-primary);
-  }
-
-  ::ng-deep .mat-mdc-card-content {
-    padding: 0;
-  }
-}
-
-.player-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  line-height: 32px;
-  color: var(--mat-sys-primary);
-}
-
-.player-name {
-  font-size: 0.5rem;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.bench-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-}
-
-.player-position {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-}
-
-.leagues-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-}
-
-.league-name {
-  font-weight: 600;
-  flex: 1;
-  text-align: left;
-}
-
-.empty-state {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.team-tabs {
-  width: 100%;
-  max-width: 1300px;
-  text-align: left;
-}
-
-.tab-content {
-  padding: 20px 0;
-}
-
-.transfer-summary {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 8px;
-
-  .over-limit {
-    color: #b3261e;
-    font-weight: 600;
-  }
-}
-
-.unsaved-badge {
-  color: var(--mat-sys-primary);
-  font-weight: 600;
-}
-
-.warning {
-  color: #b3261e;
-  font-size: 0.85rem;
-  margin: 0 0 8px;
-  text-align: center;
-}
-
-.transfer-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 32px;
-  flex-wrap: nowrap;
-
-  @media (max-width: 900px) {
-    flex-wrap: wrap;
-  }
-}
-
-.field-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
 }
 
 .slot-card {
@@ -232,21 +105,21 @@ h3 {
   }
 
   &.small {
-    width: 60px;
-    height: 60px;
+    width: 76px;
+    height: 76px;
   }
 }
 
 .slot-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
   color: var(--mat-sys-primary);
 }
 
 .slot-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
@@ -260,23 +133,22 @@ h3 {
   position: absolute;
   top: -6px;
   right: -6px;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
   background: white;
   border-radius: 50%;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
   ::ng-deep .mat-icon {
-    font-size: 12px;
-    width: 12px;
-    height: 12px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }
 
 .bench-row {
   margin-top: 12px;
-  text-align: center;
 }
 
 .bench-label {
@@ -291,12 +163,12 @@ h3 {
 .bench-cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 6px;
 }
 
 .players-column {
   flex: 0 0 380px;
+  margin-right: 64px;
 }
 
 .position-chips {
@@ -321,6 +193,7 @@ h3 {
   list-style: none;
   margin: 0;
   padding: 0;
+  max-width: 560px;
 
   li {
     display: flex;
@@ -336,10 +209,18 @@ h3 {
 }
 
 .player-photo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
+}
+
+.player-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
 }
 
@@ -348,7 +229,13 @@ h3 {
   flex-direction: column;
   flex: 1;
   min-width: 0;
-  text-align: left;
+}
+
+.player-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-meta {
@@ -360,6 +247,10 @@ h3 {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
   white-space: nowrap;
+}
+
+.empty-state {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .save-row {

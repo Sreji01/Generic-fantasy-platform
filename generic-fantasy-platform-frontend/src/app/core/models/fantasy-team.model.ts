@@ -1,6 +1,11 @@
+export interface TeamLeagueSummary {
+  id: number;
+  name: string;
+}
+
 export interface FantasyTeamRequest {
   name: string;
-  leagueId: number;
+  fantasyGameId: number;
   playerIds: number[];
 }
 
@@ -9,11 +14,12 @@ export interface FantasyTeamResponse {
   name: string;
   userId: number;
   username: string;
-  leagueId: number;
-  leagueName: string;
+  fantasyGameId: number;
+  fantasyGameName: string;
   totalPoints: number | null;
   createdAt: string;
   playerIds: number[];
+  leagues: TeamLeagueSummary[];
 }
 
 export interface StandingEntry {

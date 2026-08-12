@@ -14,9 +14,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { FantasyTeamService } from '../../../core/services/fantasy-team.service';
 import { LeagueService } from '../../../core/services/league.service';
-import { FantasyTeamRequest } from '../../../core/models/fantasy-team.model';
 import { LeagueResponse } from '../../../core/models/league.model';
-import { JoinLeagueDialogComponent, JoinLeagueDialogData } from '../join-league-dialog/join-league-dialog.component';
+import { SelectTeamDialogComponent } from '../select-team-dialog/select-team-dialog.component';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -89,27 +88,52 @@ export class BrowseLeaguesComponent implements OnInit {
   }
 
   joinLeague(league: LeagueResponse): void {
-    const data: JoinLeagueDialogData = {
-      fantasyGameId: league.fantasyGameId,
-      leagues: [league],
-      preselectedLeagueId: league.id
-    };
-    const ref = this.dialog.open(JoinLeagueDialogComponent, { data, width: '480px' });
+    this.fantasyTeamService.getMine(league.fantasyGameId).subscribe((teams) => {
+      const eligibleTeams = teams.filter((t) => !t.leagues.some((l) => l.id === league.id));
 
-    ref.afterClosed().subscribe((result: FantasyTeamRequest | undefined) => {
-      if (!result) {
+      if (eligibleTeams.length === 0) {
+        this.goCreateTeamFor(league);
         return;
       }
-      this.fantasyTeamService.create(result).subscribe({
-        next: () => {
-          this.snackBar.open('Team created!', 'Close', { duration: 3000 });
-          this.load();
-        },
-        error: (err) => {
-          const message = err?.error?.message ?? 'Failed to create team.';
-          this.snackBar.open(message, 'Close', { duration: 4000 });
-        }
+
+      if (eligibleTeams.length === 1) {
+        this.joinWithTeam(eligibleTeams[0].id, league);
+        return;
+      }
+
+      const ref = this.dialog.open(SelectTeamDialogComponent, {
+        data: { teams: eligibleTeams, leagueName: league.name },
+        width: '420px'
       });
+      ref.afterClosed().subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        if (result === 'new') {
+          this.goCreateTeamFor(league);
+          return;
+        }
+        this.joinWithTeam(result.id, league);
+      });
+    });
+  }
+
+  private joinWithTeam(teamId: number, league: LeagueResponse): void {
+    this.fantasyTeamService.joinLeague(teamId, league.id).subscribe({
+      next: () => {
+        this.snackBar.open('Joined league.', 'Close', { duration: 3000 });
+        this.load();
+      },
+      error: (err) => {
+        const message = err?.error?.message ?? 'Failed to join league.';
+        this.snackBar.open(message, 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  private goCreateTeamFor(league: LeagueResponse): void {
+    this.router.navigate(['/fantasy-games', league.fantasyGameId, 'team-builder'], {
+      queryParams: { joinLeagueId: league.id }
     });
   }
 
@@ -119,7 +143,7 @@ export class BrowseLeaguesComponent implements OnInit {
       myTeams: this.fantasyTeamService.getMine()
     }).subscribe(({ leagues, myTeams }) => {
       this.leagues.set(leagues.filter((l) => l.isPublic));
-      this.joinedLeagueIds.set(new Set(myTeams.map((t) => t.leagueId)));
+      this.joinedLeagueIds.set(new Set(myTeams.flatMap((t) => t.leagues.map((l) => l.id))));
     });
   }
 }

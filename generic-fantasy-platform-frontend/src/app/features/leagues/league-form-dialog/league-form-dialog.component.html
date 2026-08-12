@@ -15,17 +15,19 @@
       <textarea matInput formControlName="description" rows="2"></textarea>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Fantasy Game</mat-label>
-      <mat-select formControlName="fantasyGameId">
-        @for (fantasyGame of fantasyGames(); track fantasyGame.id) {
-          <mat-option [value]="fantasyGame.id">{{ fantasyGame.name }}</mat-option>
+    @if (fixedFantasyGameId == null) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fantasy Game</mat-label>
+        <mat-select formControlName="fantasyGameId">
+          @for (fantasyGame of fantasyGames(); track fantasyGame.id) {
+            <mat-option [value]="fantasyGame.id">{{ fantasyGame.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.fantasyGameId.invalid && form.controls.fantasyGameId.touched) {
+          <mat-error>Fantasy Game is required.</mat-error>
         }
-      </mat-select>
-      @if (form.controls.fantasyGameId.invalid && form.controls.fantasyGameId.touched) {
-        <mat-error>Fantasy Game is required.</mat-error>
-      }
-    </mat-form-field>
+      </mat-form-field>
+    }
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Status</mat-label>
@@ -39,23 +41,22 @@
     <div class="date-row">
       <mat-form-field appearance="outline">
         <mat-label>Start date</mat-label>
-        <input matInput type="date" formControlName="startDate" />
+        <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>End date</mat-label>
-        <input matInput type="date" formControlName="endDate" />
+        <input matInput [matDatepicker]="endPicker" formControlName="endDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
       </mat-form-field>
     </div>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Max players per team</mat-label>
       <input matInput type="number" formControlName="maxPlayersPerTeam" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Budget</mat-label>
-      <input matInput type="number" formControlName="budget" />
     </mat-form-field>
 
     <mat-checkbox formControlName="isPublic">Public league</mat-checkbox>
