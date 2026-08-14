@@ -82,7 +82,18 @@ public class FantasyTeamService {
         return teams.stream().map(this::toResponse).toList();
     }
 
-    public List<StandingEntry> getStandingsByLeague(Long leagueId) {
+    public List<StandingEntry> getStandingsByLeague(Long leagueId, Long userId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found"));
+
+        if (!league.getIsPublic()) {
+            User user = findUserOrThrow(userId);
+            boolean isMember = fantasyTeamRepository.existsByUserIdAndLeaguesId(userId, leagueId);
+            if (!isMember && user.getRole() != UserRole.ADMIN) {
+                throw new AccessDeniedException("Join this league to view its standings");
+            }
+        }
+
         List<FantasyTeam> teams = fantasyTeamRepository.findByLeaguesId(leagueId);
         teams.sort(Comparator.comparing(FantasyTeam::getTotalPoints, Comparator.nullsFirst(Comparator.naturalOrder())).reversed());
 
@@ -125,13 +136,16 @@ public class FantasyTeamService {
         fantasyTeamRepository.delete(team);
     }
 
-    public FantasyTeamResponse joinLeague(Long teamId, Long leagueId, Long userId) {
+    public FantasyTeamResponse joinLeague(Long teamId, Long leagueId, String joinCode, Long userId) {
         FantasyTeam team = findTeamOrThrow(teamId);
         User currentUser = requireOwnerOrAdmin(team, userId);
         League league = findLeagueOrThrow(leagueId);
 
         if (!league.getFantasyGame().getId().equals(team.getFantasyGame().getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "League does not belong to this team's fantasy game");
+        }
+        if (!league.getIsPublic() && !league.getJoinCode().equalsIgnoreCase(trim(joinCode))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid join code");
         }
         requireTransfersUnlocked(team.getFantasyGame(), currentUser);
 
@@ -195,6 +209,10 @@ public class FantasyTeamService {
         }
 
         return players;
+    }
+
+    private static String trim(String value) {
+        return value != null ? value.trim() : "";
     }
 
     private FantasyTeam findTeamOrThrow(Long id) {

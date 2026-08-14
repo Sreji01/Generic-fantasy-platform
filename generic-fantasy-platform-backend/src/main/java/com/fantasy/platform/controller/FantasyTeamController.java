@@ -47,8 +47,9 @@ public class FantasyTeamController {
     }
 
     @GetMapping("/standings")
-    public ResponseEntity<List<StandingEntry>> getStandings(@RequestParam Long leagueId) {
-        return ResponseEntity.ok(fantasyTeamService.getStandingsByLeague(leagueId));
+    public ResponseEntity<List<StandingEntry>> getStandings(@RequestParam Long leagueId,
+                                                               @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(fantasyTeamService.getStandingsByLeague(leagueId, principal.getUser().getId()));
     }
 
     @GetMapping("/me")
@@ -79,8 +80,9 @@ public class FantasyTeamController {
     @PostMapping("/{id}/leagues/{leagueId}")
     public ResponseEntity<FantasyTeamResponse> joinLeague(@PathVariable Long id,
                                                             @PathVariable Long leagueId,
+                                                            @RequestParam(required = false) String code,
                                                             @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(fantasyTeamService.joinLeague(id, leagueId, principal.getUser().getId()));
+        return ResponseEntity.ok(fantasyTeamService.joinLeague(id, leagueId, code, principal.getUser().getId()));
     }
 
     @DeleteMapping("/{id}/leagues/{leagueId}")

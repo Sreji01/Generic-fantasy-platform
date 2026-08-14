@@ -58,6 +58,9 @@ public class League {
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = true;
 
+    @Column(name = "join_code", unique = true, length = 8)
+    private String joinCode;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToMany(mappedBy = "leagues")

@@ -8,4 +8,6 @@ import java.util.List;
 public interface LeagueRepository extends JpaRepository<League, Long> {
 
     List<League> findByFantasyGameId(Long fantasyGameId);
+
+    boolean existsByJoinCode(String joinCode);
 }

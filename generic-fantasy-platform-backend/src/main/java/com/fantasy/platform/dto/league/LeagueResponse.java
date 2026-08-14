@@ -15,6 +15,7 @@ public record LeagueResponse(
         LeagueStatus status,
         Integer maxPlayersPerTeam,
         Integer participantCount,
-        Boolean isPublic
+        Boolean isPublic,
+        String joinCode
 ) {
 }

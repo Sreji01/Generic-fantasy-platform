@@ -17,11 +17,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class LeagueService {
+
+    private static final String JOIN_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final int JOIN_CODE_LENGTH = 6;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final LeagueRepository leagueRepository;
     private final FantasyGameRepository fantasyGameRepository;
@@ -35,19 +40,19 @@ public class LeagueService {
         applyRequest(league, request, fantasyGame);
 
         leagueRepository.save(league);
-        return toResponse(league);
+        return toResponse(league, true);
     }
 
     public List<LeagueResponse> getAll() {
-        return leagueRepository.findAll().stream().map(this::toResponse).toList();
+        return leagueRepository.findAll().stream().map(l -> toResponse(l, false)).toList();
     }
 
     public List<LeagueResponse> getByFantasyGame(Long fantasyGameId) {
-        return leagueRepository.findByFantasyGameId(fantasyGameId).stream().map(this::toResponse).toList();
+        return leagueRepository.findByFantasyGameId(fantasyGameId).stream().map(l -> toResponse(l, false)).toList();
     }
 
     public LeagueResponse getById(Long id) {
-        return toResponse(findLeagueOrThrow(id));
+        return toResponse(findLeagueOrThrow(id), false);
     }
 
     public LeagueResponse update(Long id, LeagueRequest request, Long userId) {
@@ -58,7 +63,7 @@ public class LeagueService {
         applyRequest(league, request, fantasyGame);
 
         leagueRepository.save(league);
-        return toResponse(league);
+        return toResponse(league, true);
     }
 
     public void delete(Long id, Long userId) {
@@ -83,6 +88,22 @@ public class LeagueService {
         league.setStatus(request.status());
         league.setMaxPlayersPerTeam(request.maxPlayersPerTeam());
         league.setIsPublic(request.isPublic() != null ? request.isPublic() : true);
+
+        if (!league.getIsPublic() && league.getJoinCode() == null) {
+            league.setJoinCode(generateUniqueJoinCode());
+        }
+    }
+
+    private String generateUniqueJoinCode() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder(JOIN_CODE_LENGTH);
+            for (int i = 0; i < JOIN_CODE_LENGTH; i++) {
+                sb.append(JOIN_CODE_ALPHABET.charAt(RANDOM.nextInt(JOIN_CODE_ALPHABET.length())));
+            }
+            code = sb.toString();
+        } while (leagueRepository.existsByJoinCode(code));
+        return code;
     }
 
     private League findLeagueOrThrow(Long id) {
@@ -104,7 +125,7 @@ public class LeagueService {
         }
     }
 
-    private LeagueResponse toResponse(League league) {
+    private LeagueResponse toResponse(League league, boolean includeJoinCode) {
         return new LeagueResponse(
                 league.getId(),
                 league.getName(),
@@ -116,7 +137,8 @@ public class LeagueService {
                 league.getStatus(),
                 league.getMaxPlayersPerTeam(),
                 league.getFantasyTeams().size(),
-                league.getIsPublic()
+                league.getIsPublic(),
+                includeJoinCode ? league.getJoinCode() : null
         );
     }
 }
