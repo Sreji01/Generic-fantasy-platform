@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +32,6 @@ public class Round {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
-    private String name;
 
     @Column(name = "round_number", nullable = false)
     private Integer roundNumber;
@@ -48,6 +46,9 @@ public class Round {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "transfer_deadline")
+    private LocalDateTime transferDeadline;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

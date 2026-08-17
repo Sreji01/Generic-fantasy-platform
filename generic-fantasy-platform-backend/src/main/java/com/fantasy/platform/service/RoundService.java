@@ -66,11 +66,11 @@ public class RoundService {
     }
 
     private void applyRequest(Round round, RoundRequest request, FantasyGame fantasyGame) {
-        round.setName(request.name());
         round.setRoundNumber(request.roundNumber());
         round.setFantasyGame(fantasyGame);
         round.setStartDate(request.startDate());
         round.setEndDate(request.endDate());
+        round.setTransferDeadline(request.transferDeadline());
         round.setStatus(request.status());
     }
 
@@ -99,12 +99,12 @@ public class RoundService {
     private RoundResponse toResponse(Round round) {
         return new RoundResponse(
                 round.getId(),
-                round.getName(),
                 round.getRoundNumber(),
                 round.getFantasyGame().getId(),
                 round.getFantasyGame().getName(),
                 round.getStartDate(),
                 round.getEndDate(),
+                round.getTransferDeadline(),
                 round.getStatus()
         );
     }
