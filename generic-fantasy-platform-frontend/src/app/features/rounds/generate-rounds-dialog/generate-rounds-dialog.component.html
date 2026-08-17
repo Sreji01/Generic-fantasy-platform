@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Generate Rounds</h2>
+
+<form [formGroup]="form" (ngSubmit)="confirm()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Number of rounds</mat-label>
+      <input matInput type="number" min="1" max="100" formControlName="count" />
+      @if (form.controls.count.invalid && form.controls.count.touched) {
+        <mat-error>Enter a number between 1 and 100.</mat-error>
+      }
+      <mat-hint>Creates rounds numbered after the last existing round. Set each round's dates and transfer deadline afterward.</mat-hint>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit">Generate</button>
+  </mat-dialog-actions>
+</form>

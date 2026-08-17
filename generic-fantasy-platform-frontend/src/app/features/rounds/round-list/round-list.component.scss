@@ -10,6 +10,12 @@ table {
   width: 100%;
 }
 
+td.mat-column-actions {
+  button:first-child {
+    margin-left: -8px;
+  }
+}
+
 .empty-state {
   margin-top: 16px;
   color: rgba(255, 255, 255, 0.7);
