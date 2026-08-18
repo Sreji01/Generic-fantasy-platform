@@ -6,7 +6,9 @@
 </mat-toolbar>
 
 <div class="content">
-  @if (standings().length > 0) {
+  @if (forbidden()) {
+    <p class="empty-state">Join this league to view its standings.</p>
+  } @else if (standings().length > 0) {
     <table mat-table [dataSource]="standings()" class="mat-elevation-z1">
       <ng-container matColumnDef="rank">
         <th mat-header-cell *matHeaderCellDef>#</th>

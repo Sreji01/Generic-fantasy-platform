@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Join {{ data.leagueName }}</h2>
+
+<form (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <p>This is a private league. Enter its join code to continue.</p>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Join code</mat-label>
+      <input matInput [(ngModel)]="code" name="code" autocomplete="off" />
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!code.trim()">Join</button>
+  </mat-dialog-actions>
+</form>

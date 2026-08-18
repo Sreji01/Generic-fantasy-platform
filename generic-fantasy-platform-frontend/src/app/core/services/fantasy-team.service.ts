@@ -47,8 +47,9 @@ export class FantasyTeamService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  joinLeague(teamId: number, leagueId: number): Observable<FantasyTeamResponse> {
-    return this.http.post<FantasyTeamResponse>(`${this.baseUrl}/${teamId}/leagues/${leagueId}`, {});
+  joinLeague(teamId: number, leagueId: number, code?: string): Observable<FantasyTeamResponse> {
+    const params = code ? new HttpParams().set('code', code) : undefined;
+    return this.http.post<FantasyTeamResponse>(`${this.baseUrl}/${teamId}/leagues/${leagueId}`, {}, { params });
   }
 
   leaveLeague(teamId: number, leagueId: number): Observable<FantasyTeamResponse> {

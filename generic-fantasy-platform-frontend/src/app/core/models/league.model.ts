@@ -7,7 +7,6 @@ export interface LeagueRequest {
   startDate?: string;
   endDate?: string;
   status: LeagueStatus;
-  maxPlayersPerTeam?: number;
   isPublic?: boolean;
 }
 
@@ -20,7 +19,7 @@ export interface LeagueResponse {
   startDate: string | null;
   endDate: string | null;
   status: LeagueStatus;
-  maxPlayersPerTeam: number | null;
   participantCount: number;
   isPublic: boolean;
+  joinCode: string | null;
 }
