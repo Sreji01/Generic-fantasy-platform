@@ -1,0 +1,39 @@
+.player-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.player-photo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.player-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  line-height: 64px;
+  color: var(--mat-sys-primary);
+  flex-shrink: 0;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.player-position {
+  font-weight: 600;
+}
+
+.player-team,
+.player-price {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
