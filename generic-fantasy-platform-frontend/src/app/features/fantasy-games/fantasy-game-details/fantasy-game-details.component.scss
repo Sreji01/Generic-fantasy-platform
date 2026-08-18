@@ -42,6 +42,10 @@ mat-toolbar {
   overflow-x: auto;
 }
 
+.leagues-section {
+  max-width: 780px;
+}
+
 h3 {
   margin: 0 0 8px;
 }
@@ -169,20 +173,34 @@ h3 {
   }
 }
 
+.my-teams-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
 .my-teams-cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .team-card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  min-width: 140px;
-  padding: 16px 24px;
+  width: 200px;
+  height: 64px;
+  padding: 0 16px;
   border: none;
   border-radius: 12px;
   background: var(--mat-sys-primary);
@@ -199,6 +217,10 @@ h3 {
 .team-card-name {
   font-weight: 700;
   font-size: 1rem;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .team-card-points {
@@ -224,7 +246,8 @@ h3 {
   padding: 0;
 
   li {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 84px 110px 130px auto auto;
     align-items: center;
     gap: 16px;
     padding: 12px;
@@ -234,7 +257,11 @@ h3 {
 
 .league-name {
   font-weight: 600;
-  flex: 1;
+  text-align: left;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .league-visibility {
@@ -245,6 +272,8 @@ h3 {
   border-radius: 10px;
   color: #2e7d32;
   background: rgba(46, 125, 50, 0.12);
+  text-align: center;
+  justify-self: start;
 
   &.private {
     color: #b3261e;
@@ -256,11 +285,13 @@ h3 {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
+  text-align: left;
 }
 
 .league-participants {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
+  text-align: left;
 }
 
 .empty-state {

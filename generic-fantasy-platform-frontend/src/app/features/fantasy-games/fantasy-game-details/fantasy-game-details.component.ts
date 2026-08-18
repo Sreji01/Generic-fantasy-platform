@@ -15,10 +15,14 @@ import { FantasyGameService } from '../../../core/services/fantasy-game.service'
 import { FantasyTeamService } from '../../../core/services/fantasy-team.service';
 import { LeagueService } from '../../../core/services/league.service';
 import { RoundService } from '../../../core/services/round.service';
-import { FantasyGameRequest, FantasyGameResponse } from '../../../core/models/fantasy-game.model';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
 import { FantasyTeamResponse } from '../../../core/models/fantasy-team.model';
 import { LeagueRequest, LeagueResponse } from '../../../core/models/league.model';
-import { FantasyGameFormDialogComponent } from '../fantasy-game-form-dialog/fantasy-game-form-dialog.component';
+import {
+  FantasyGameFormDialogComponent,
+  FantasyGameFormResult
+} from '../fantasy-game-form-dialog/fantasy-game-form-dialog.component';
+import { JoinLeagueDialogComponent } from '../../leagues/join-league-dialog/join-league-dialog.component';
 import { LeagueFormDialogComponent } from '../../leagues/league-form-dialog/league-form-dialog.component';
 import { SelectTeamDialogComponent } from '../../leagues/select-team-dialog/select-team-dialog.component';
 import { environment } from '../../../../environments/environment';
@@ -51,6 +55,8 @@ export class FantasyGameDetailsComponent implements OnInit {
   readonly popularLeagues = computed(() => [...this.leagues()].sort((a, b) => b.participantCount - a.participantCount));
   readonly transfersLocked = signal(false);
 
+  readonly joinedLeagueIds = computed(() => new Set(this.myTeams().flatMap((t) => t.leagues.map((l) => l.id))));
+
   readonly canBypassLock = computed(() => this.authService.currentUser()?.role === 'ADMIN');
 
   readonly backgroundDisplayUrl = computed(() => {
@@ -58,7 +64,7 @@ export class FantasyGameDetailsComponent implements OnInit {
     return url ? `${environment.apiUrl}${url}` : null;
   });
 
-  readonly cellSize = 90;
+  readonly cellSize = 75;
   readonly gridRows = computed(() => Array.from({ length: this.fantasyGame()?.fieldRows ?? 0 }, (_, i) => i));
   readonly gridCols = computed(() => Array.from({ length: this.fantasyGame()?.fieldCols ?? 0 }, (_, i) => i));
 
@@ -105,7 +111,15 @@ export class FantasyGameDetailsComponent implements OnInit {
     this.router.navigate(['/fantasy-games', this.fantasyGameId, 'rounds']);
   }
 
+  canViewStandings(league: LeagueResponse): boolean {
+    return league.isPublic || this.joinedLeagueIds().has(league.id) || this.canManage();
+  }
+
   viewStandings(league: LeagueResponse): void {
+    if (!this.canViewStandings(league)) {
+      this.snackBar.open('Join this league to view its standings.', 'Close', { duration: 4000 });
+      return;
+    }
     this.router.navigate(['/leagues', league.id, 'standings']);
   }
 
@@ -121,14 +135,25 @@ export class FantasyGameDetailsComponent implements OnInit {
 
     const ref = this.dialog.open(FantasyGameFormDialogComponent, { data: fantasyGame, width: '600px', maxWidth: '600px' });
 
-    ref.afterClosed().subscribe((result: FantasyGameRequest | undefined) => {
+    ref.afterClosed().subscribe((result: FantasyGameFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.fantasyGameService.update(fantasyGame.id, result).subscribe({
+      this.fantasyGameService.update(fantasyGame.id, result.request).subscribe({
         next: (updated) => {
           this.fantasyGame.set(updated);
-          this.snackBar.open('Fantasy Game updated.', 'Close', { duration: 3000 });
+          const proceed = () => this.snackBar.open('Fantasy Game updated.', 'Close', { duration: 3000 });
+          if (result.thumbnailFile) {
+            this.fantasyGameService.uploadThumbnailImage(fantasyGame.id, result.thumbnailFile).subscribe({
+              next: (withThumbnail) => {
+                this.fantasyGame.set(withThumbnail);
+                proceed();
+              },
+              error: proceed
+            });
+          } else {
+            proceed();
+          }
         },
         error: () => this.snackBar.open('Failed to update fantasy game. You may not have permission.', 'Close', { duration: 4000 })
       });
@@ -170,16 +195,33 @@ export class FantasyGameDetailsComponent implements OnInit {
   }
 
   joinLeague(league: LeagueResponse): void {
+    if (!league.isPublic) {
+      const ref = this.dialog.open(JoinLeagueDialogComponent, {
+        data: { leagueName: league.name },
+        width: '420px'
+      });
+      ref.afterClosed().subscribe((code: string | undefined) => {
+        if (!code) {
+          return;
+        }
+        this.startJoinLeague(league, code);
+      });
+      return;
+    }
+    this.startJoinLeague(league, undefined);
+  }
+
+  private startJoinLeague(league: LeagueResponse, code: string | undefined): void {
     this.fantasyTeamService.getMine(this.fantasyGameId).subscribe((teams) => {
       const eligibleTeams = teams.filter((t) => !t.leagues.some((l) => l.id === league.id));
 
       if (eligibleTeams.length === 0) {
-        this.goCreateTeamFor(league);
+        this.goCreateTeamFor(league, code);
         return;
       }
 
       if (eligibleTeams.length === 1) {
-        this.joinWithTeam(eligibleTeams[0].id, league);
+        this.joinWithTeam(eligibleTeams[0].id, league, code);
         return;
       }
 
@@ -192,16 +234,16 @@ export class FantasyGameDetailsComponent implements OnInit {
           return;
         }
         if (result === 'new') {
-          this.goCreateTeamFor(league);
+          this.goCreateTeamFor(league, code);
           return;
         }
-        this.joinWithTeam(result.id, league);
+        this.joinWithTeam(result.id, league, code);
       });
     });
   }
 
-  private joinWithTeam(teamId: number, league: LeagueResponse): void {
-    this.fantasyTeamService.joinLeague(teamId, league.id).subscribe({
+  private joinWithTeam(teamId: number, league: LeagueResponse, code: string | undefined): void {
+    this.fantasyTeamService.joinLeague(teamId, league.id, code).subscribe({
       next: () => {
         this.snackBar.open('Joined league.', 'Close', { duration: 3000 });
         this.loadLeagues();
@@ -214,9 +256,9 @@ export class FantasyGameDetailsComponent implements OnInit {
     });
   }
 
-  private goCreateTeamFor(league: LeagueResponse): void {
+  private goCreateTeamFor(league: LeagueResponse, code: string | undefined): void {
     this.router.navigate(['/fantasy-games', this.fantasyGameId, 'team-builder'], {
-      queryParams: { joinLeagueId: league.id }
+      queryParams: { joinLeagueId: league.id, code: code ?? null }
     });
   }
 
@@ -229,7 +271,14 @@ export class FantasyGameDetailsComponent implements OnInit {
       }
       this.leagueService.create(result).subscribe({
         next: (created) => {
-          this.snackBar.open('League created.', 'Close', { duration: 3000 });
+          if (!created.isPublic && created.joinCode) {
+            const snackBarRef = this.snackBar.open(`League created. Join code: ${created.joinCode}`, 'Copy', {
+              duration: 10000
+            });
+            snackBarRef.onAction().subscribe(() => navigator.clipboard.writeText(created.joinCode!));
+          } else {
+            this.snackBar.open('League created.', 'Close', { duration: 3000 });
+          }
           this.loadLeagues();
           onCreated?.(created);
         },

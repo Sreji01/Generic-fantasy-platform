@@ -29,29 +29,6 @@
       <p class="description">{{ fantasyGame.description }}</p>
     }
 
-    @if (fantasyGame.budget != null) {
-      <p class="budget-badge">
-        <mat-icon>account_balance_wallet</mat-icon>
-        Budget: {{ fantasyGame.budget }}
-      </p>
-    }
-
-    <section class="detail-section my-teams-section">
-      <h3>My Teams</h3>
-      @if (myTeams().length > 0) {
-        <div class="my-teams-cards">
-          @for (team of myTeams(); track team.id) {
-            <button type="button" class="team-card" (click)="viewTeam(team)">
-              <span class="team-card-name">{{ team.name }}</span>
-              <span class="team-card-points">{{ team.totalPoints ?? 0 }} pts</span>
-            </button>
-          }
-        </div>
-      } @else {
-        <p class="empty-state">You haven't created a team in this fantasy game yet.</p>
-      }
-    </section>
-
     <section class="detail-section field-section">
       <h3>Field</h3>
       <div
@@ -99,13 +76,16 @@
       }
     </section>
 
-    <section class="detail-section leagues-section">
-      <div class="leagues-header">
-        <h3>Popular Leagues</h3>
-        <button mat-flat-button color="primary" type="button" (click)="openCreateLeagueDialog()">
-          <mat-icon>add</mat-icon>
-          Create League
-        </button>
+    @if (fantasyGame.budget != null) {
+      <p class="budget-badge">
+        <mat-icon>account_balance_wallet</mat-icon>
+        Budget: {{ fantasyGame.budget }}{{ fantasyGame.currency ? ' ' + fantasyGame.currency : '' }}
+      </p>
+    }
+
+    <section class="detail-section my-teams-section">
+      <div class="my-teams-header">
+        <h3>My Teams</h3>
         <button
           mat-flat-button
           type="button"
@@ -114,6 +94,28 @@
         >
           <mat-icon>group_add</mat-icon>
           Create Team
+        </button>
+      </div>
+      @if (myTeams().length > 0) {
+        <div class="my-teams-cards">
+          @for (team of myTeams(); track team.id) {
+            <button type="button" class="team-card" (click)="viewTeam(team)">
+              <span class="team-card-name">{{ team.name }}</span>
+              <span class="team-card-points">{{ team.totalPoints ?? 0 }} pts</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">You haven't created a team in this fantasy game yet.</p>
+      }
+    </section>
+
+    <section class="detail-section leagues-section">
+      <div class="leagues-header">
+        <h3>Popular Leagues</h3>
+        <button mat-flat-button color="primary" type="button" (click)="openCreateLeagueDialog()">
+          <mat-icon>add</mat-icon>
+          Create League
         </button>
       </div>
 
@@ -131,7 +133,15 @@
               </span>
               <span class="league-status">{{ league.status }}</span>
               <span class="league-participants">{{ league.participantCount }} participants</span>
-              <button mat-button type="button" (click)="viewStandings(league)">Standings</button>
+              <button
+                mat-button
+                type="button"
+                [disabled]="!canViewStandings(league)"
+                [matTooltip]="canViewStandings(league) ? '' : 'Join this league to view its standings'"
+                (click)="viewStandings(league)"
+              >
+                Standings
+              </button>
               <button
                 mat-button
                 color="primary"
