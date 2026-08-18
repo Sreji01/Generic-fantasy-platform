@@ -21,19 +21,19 @@
   <div class="nav-links">
     <a mat-flat-button routerLink="/fantasy-games">
       <mat-icon>sports_esports</mat-icon>
-      Manage Fantasy Games
+      My Fantasy Games
     </a>
     <a mat-flat-button routerLink="/leagues">
       <mat-icon>emoji_events</mat-icon>
-      Manage Leagues
-    </a>
-    <a mat-flat-button routerLink="/leagues/browse">
-      <mat-icon>travel_explore</mat-icon>
-      Browse Public Leagues
+      My Leagues
     </a>
     <a mat-flat-button routerLink="/my-teams">
       <mat-icon>groups</mat-icon>
       My Teams
+    </a>
+    <a mat-flat-button routerLink="/leagues/browse">
+      <mat-icon>travel_explore</mat-icon>
+      Browse Public Leagues
     </a>
     @if (isAdmin()) {
       <a mat-flat-button routerLink="/admin">
@@ -42,6 +42,66 @@
       </a>
     }
   </div>
+
+  <h3>Account Settings</h3>
+  <mat-card class="settings-card">
+    <div class="setting-row">
+      <div class="setting-label">
+        <span class="setting-title">Username</span>
+        @if (!editingUsername()) {
+          <span class="setting-value">{{ currentUser()?.username }}</span>
+        }
+      </div>
+
+      @if (!editingUsername()) {
+        <button mat-button type="button" (click)="startEditUsername()">Change</button>
+      } @else {
+        <form class="setting-form" (ngSubmit)="saveUsername()">
+          <mat-form-field appearance="outline" class="setting-field">
+            <mat-label>New username</mat-label>
+            <input matInput name="username" [(ngModel)]="usernameInput" minlength="3" maxlength="50" required />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingUsername()">Save</button>
+          <button mat-button type="button" (click)="cancelEditUsername()">Cancel</button>
+        </form>
+      }
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">
+        <span class="setting-title">Password</span>
+        @if (!editingPassword()) {
+          <span class="setting-value">••••••••</span>
+        }
+      </div>
+
+      @if (!editingPassword()) {
+        <button mat-button type="button" (click)="startEditPassword()">Change</button>
+      } @else {
+        <form class="setting-form password-form" (ngSubmit)="savePassword()">
+          <mat-form-field appearance="outline" class="setting-field">
+            <mat-label>Current password</mat-label>
+            <input matInput type="password" name="currentPassword" [(ngModel)]="currentPasswordInput" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="setting-field">
+            <mat-label>New password</mat-label>
+            <input matInput type="password" name="newPassword" [(ngModel)]="newPasswordInput" minlength="8" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="setting-field">
+            <mat-label>Confirm new password</mat-label>
+            <input matInput type="password" name="confirmPassword" [(ngModel)]="confirmPasswordInput" required />
+          </mat-form-field>
+          @if (newPasswordInput && confirmPasswordInput && newPasswordInput !== confirmPasswordInput) {
+            <p class="field-error">Passwords do not match.</p>
+          }
+          <div class="setting-form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="!canSavePassword() || savingPassword()">Save</button>
+            <button mat-button type="button" (click)="cancelEditPassword()">Cancel</button>
+          </div>
+        </form>
+      }
+    </div>
+  </mat-card>
 
   <button mat-stroked-button color="warn" class="logout-btn" (click)="logout()">
     <mat-icon>logout</mat-icon>

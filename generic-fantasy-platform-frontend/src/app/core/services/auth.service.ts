@@ -3,7 +3,14 @@ import { Injectable, computed, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, UserRole } from '../models/auth.model';
+import {
+  AuthResponse,
+  ChangePasswordRequest,
+  LoginRequest,
+  RegisterRequest,
+  UpdateUsernameRequest,
+  UserRole
+} from '../models/auth.model';
 
 interface StoredAuth {
   token: string;
@@ -33,6 +40,16 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${environment.apiUrl}/auth/login`, request)
       .pipe(tap((response) => this.setSession(response)));
+  }
+
+  updateUsername(request: UpdateUsernameRequest): Observable<AuthResponse> {
+    return this.http
+      .put<AuthResponse>(`${environment.apiUrl}/users/me/username`, request)
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/users/me/password`, request);
   }
 
   logout(): void {

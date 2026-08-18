@@ -17,3 +17,12 @@ export interface AuthResponse {
   email: string;
   role: UserRole;
 }
+
+export interface UpdateUsernameRequest {
+  username: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
