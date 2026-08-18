@@ -43,23 +43,22 @@
       <input matInput type="number" formControlName="price" />
     </mat-form-field>
 
-    @if (isEditMode) {
-      <div class="photo-row">
-        @if (imageDisplayUrl(); as url) {
-          <img [src]="url" alt="Player photo" class="photo-preview" />
-        }
-        <input #photoInput type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
-        <button mat-stroked-button type="button" [disabled]="uploading()" (click)="photoInput.click()">
-          <mat-icon>photo_camera</mat-icon>
-          {{ imageUrl() ? 'Change Photo' : 'Upload Photo' }}
-        </button>
-        @if (uploading()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        }
-      </div>
-    } @else {
-      <p class="photo-hint">You can add a photo after creating the player.</p>
-    }
+    <div class="photo-row">
+      @if (imageDisplayUrl(); as url) {
+        <img [src]="url" alt="Player photo" class="photo-preview" />
+      }
+      <input #photoInput type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+      <button mat-stroked-button type="button" [disabled]="uploading()" (click)="photoInput.click()">
+        <mat-icon>photo_camera</mat-icon>
+        {{ imageDisplayUrl() ? 'Change Photo' : 'Upload Photo' }}
+      </button>
+      @if (uploading()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      }
+      @if (imageDisplayUrl()) {
+        <button mat-button type="button" (click)="removePhoto()">Remove</button>
+      }
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

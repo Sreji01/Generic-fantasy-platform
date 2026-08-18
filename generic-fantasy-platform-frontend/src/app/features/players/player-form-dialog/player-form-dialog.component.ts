@@ -15,6 +15,11 @@ import { environment } from '../../../../environments/environment';
 
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
+export interface PlayerFormResult {
+  request: PlayerRequest;
+  imageFile: File | null;
+}
+
 @Component({
   selector: 'app-player-form-dialog',
   standalone: true,
@@ -33,7 +38,7 @@ const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 })
 export class PlayerFormDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly dialogRef = inject(MatDialogRef<PlayerFormDialogComponent>);
+  private readonly dialogRef = inject(MatDialogRef<PlayerFormDialogComponent, PlayerFormResult>);
   private readonly playerService = inject(PlayerService);
   private readonly snackBar = inject(MatSnackBar);
   readonly data = inject<(Partial<PlayerResponse> & { fantasyGameId: number; positions?: string[] }) | null>(MAT_DIALOG_DATA);
@@ -42,7 +47,12 @@ export class PlayerFormDialogComponent {
 
   readonly isEditMode = this.data?.id != null;
   readonly imageUrl = signal<string | null>(this.data?.imageUrl ?? null);
+  readonly imageFile = signal<File | null>(null);
   readonly imageDisplayUrl = computed(() => {
+    const file = this.imageFile();
+    if (file) {
+      return URL.createObjectURL(file);
+    }
     const url = this.imageUrl();
     return url ? `${environment.apiUrl}${url}` : null;
   });
@@ -73,6 +83,12 @@ export class PlayerFormDialogComponent {
       return;
     }
 
+    if (!this.isEditMode) {
+      this.imageFile.set(file);
+      input.value = '';
+      return;
+    }
+
     this.uploading.set(true);
     this.playerService.uploadImage(this.data!.id!, file).subscribe({
       next: (player) => {
@@ -88,6 +104,11 @@ export class PlayerFormDialogComponent {
     });
   }
 
+  removePhoto(): void {
+    this.imageFile.set(null);
+    this.imageUrl.set(null);
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -95,7 +116,7 @@ export class PlayerFormDialogComponent {
     }
 
     const raw = this.form.getRawValue();
-    const result: PlayerRequest = {
+    const request: PlayerRequest = {
       firstName: raw.firstName ?? '',
       lastName: raw.lastName ?? '',
       position: raw.position ?? '',
@@ -105,7 +126,7 @@ export class PlayerFormDialogComponent {
       fantasyGameId: this.data!.fantasyGameId
     };
 
-    this.dialogRef.close(result);
+    this.dialogRef.close({ request, imageFile: this.imageFile() });
   }
 
   cancel(): void {

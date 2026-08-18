@@ -11,11 +11,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { PlayerService } from '../../../core/services/player.service';
 import { FantasyGameService } from '../../../core/services/fantasy-game.service';
-import { PlayerRequest, PlayerResponse } from '../../../core/models/player.model';
-import { PlayerFormDialogComponent } from '../player-form-dialog/player-form-dialog.component';
+import { PlayerResponse } from '../../../core/models/player.model';
+import { PlayerFormDialogComponent, PlayerFormResult } from '../player-form-dialog/player-form-dialog.component';
 import { environment } from '../../../../environments/environment';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -39,6 +40,7 @@ const DEFAULT_PAGE_SIZE = 10;
 export class PlayerListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   private readonly playerService = inject(PlayerService);
   private readonly fantasyGameService = inject(FantasyGameService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -47,10 +49,29 @@ export class PlayerListComponent implements OnInit {
 
   private fantasyGameId!: number;
 
-  readonly displayedColumns = ['photo', 'firstName', 'lastName', 'position', 'realTeam', 'price', 'actions'];
+  private static readonly BASE_COLUMNS = ['photo', 'firstName', 'lastName', 'position', 'realTeam', 'price'];
   readonly fantasyGameName = signal('');
+  readonly createdByUsername = signal('');
   readonly positionNames = signal<string[]>([]);
+  readonly currency = signal<string | null>(null);
   readonly players = signal<PlayerResponse[]>([]);
+
+  readonly currencyLabel = computed(() => {
+    const currency = this.currency();
+    return currency ? ` ${currency}` : '';
+  });
+
+  readonly canManage = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) {
+      return false;
+    }
+    return user.role === 'ADMIN' || user.username === this.createdByUsername();
+  });
+
+  readonly displayedColumns = computed(() =>
+    this.canManage() ? [...PlayerListComponent.BASE_COLUMNS, 'actions'] : PlayerListComponent.BASE_COLUMNS
+  );
 
   readonly searchTerm = signal('');
   readonly pageIndex = signal(0);
@@ -78,7 +99,9 @@ export class PlayerListComponent implements OnInit {
     this.fantasyGameId = Number(this.route.snapshot.paramMap.get('id'));
     this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => {
       this.fantasyGameName.set(fantasyGame.name);
+      this.createdByUsername.set(fantasyGame.createdByUsername);
       this.positionNames.set(fantasyGame.positions.map((p) => p.name));
+      this.currency.set(fantasyGame.currency);
     });
     this.load();
   }
@@ -107,14 +130,21 @@ export class PlayerListComponent implements OnInit {
       width: '480px'
     });
 
-    ref.afterClosed().subscribe((result: PlayerRequest | undefined) => {
+    ref.afterClosed().subscribe((result: PlayerFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.playerService.create(result).subscribe({
-        next: () => {
-          this.snackBar.open('Player added.', 'Close', { duration: 3000 });
-          this.load();
+      this.playerService.create(result.request).subscribe({
+        next: (created) => {
+          const proceed = () => {
+            this.snackBar.open('Player added.', 'Close', { duration: 3000 });
+            this.load();
+          };
+          if (result.imageFile) {
+            this.playerService.uploadImage(created.id, result.imageFile).subscribe({ next: proceed, error: proceed });
+          } else {
+            proceed();
+          }
         },
         error: () => this.snackBar.open('Failed to add player.', 'Close', { duration: 3000 })
       });
@@ -127,11 +157,11 @@ export class PlayerListComponent implements OnInit {
       width: '480px'
     });
 
-    ref.afterClosed().subscribe((result: PlayerRequest | undefined) => {
+    ref.afterClosed().subscribe((result: PlayerFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.playerService.update(player.id, result).subscribe({
+      this.playerService.update(player.id, result.request).subscribe({
         next: () => {
           this.snackBar.open('Player updated.', 'Close', { duration: 3000 });
           this.load();
