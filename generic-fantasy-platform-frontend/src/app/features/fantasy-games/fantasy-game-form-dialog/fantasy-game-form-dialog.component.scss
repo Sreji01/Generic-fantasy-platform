@@ -3,6 +3,47 @@
   margin-bottom: 8px;
 }
 
+.date-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  mat-form-field {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.budget-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  .budget-field {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+  }
+
+  .currency-field {
+    flex: 0 0 180px;
+    margin-bottom: 0;
+  }
+}
+
+.thumbnail-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.thumbnail-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
 .scoring-rules-section {
   margin-top: 8px;
 }
@@ -36,6 +77,15 @@
 
   button {
     margin-top: -14px;
+  }
+
+  .varies-checkbox {
+    display: flex;
+    align-items: center;
+
+    ::ng-deep .mdc-form-field {
+      align-items: center;
+    }
   }
 }
 

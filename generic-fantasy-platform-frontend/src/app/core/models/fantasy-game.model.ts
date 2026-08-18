@@ -4,6 +4,8 @@ import { FantasyGameScoringRuleRequest, FantasyGameScoringRuleResponse } from '.
 export interface FantasyGameRequest {
   name: string;
   description?: string;
+  startDate?: string;
+  endDate?: string;
   fieldRows: number;
   fieldCols: number;
   benchRows?: number;
@@ -13,7 +15,9 @@ export interface FantasyGameRequest {
   pickBenchRows?: number;
   pickBenchCols?: number;
   budget?: number;
+  currency?: string;
   backgroundImageUrl?: string;
+  benchBackgroundImageUrl?: string;
   thumbnailUrl?: string;
   scoringRules: FantasyGameScoringRuleRequest[];
   positions: FantasyGamePositionRequest[];
@@ -24,6 +28,8 @@ export interface FantasyGameResponse {
   id: number;
   name: string;
   description: string | null;
+  startDate: string | null;
+  endDate: string | null;
   fieldRows: number;
   fieldCols: number;
   benchRows: number | null;
@@ -33,7 +39,9 @@ export interface FantasyGameResponse {
   pickBenchRows: number | null;
   pickBenchCols: number | null;
   budget: number | null;
+  currency: string | null;
   backgroundImageUrl: string | null;
+  benchBackgroundImageUrl: string | null;
   thumbnailUrl: string | null;
   playerCount: number;
   scoringRules: FantasyGameScoringRuleResponse[];

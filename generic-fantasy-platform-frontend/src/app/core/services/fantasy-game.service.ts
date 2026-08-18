@@ -32,6 +32,12 @@ export class FantasyGameService {
     return this.http.post<FantasyGameResponse>(`${this.baseUrl}/${id}/background-image`, formData);
   }
 
+  uploadBenchBackgroundImage(id: number, file: File): Observable<FantasyGameResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<FantasyGameResponse>(`${this.baseUrl}/${id}/bench-background-image`, formData);
+  }
+
   uploadThumbnailImage(id: number, file: File): Observable<FantasyGameResponse> {
     const formData = new FormData();
     formData.append('file', file);

@@ -1,14 +1,18 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { FantasyGameRequest, FantasyGameResponse } from '../../../core/models/fantasy-game.model';
 import { ScoringRulePositionValue } from '../../../core/models/fantasy-game-scoring-rule.model';
+import { environment } from '../../../../environments/environment';
 
 interface WorkingScoringRule {
   tempId: number;
@@ -18,6 +22,23 @@ interface WorkingScoringRule {
   positionValues: ScoringRulePositionValue[];
 }
 
+export interface FantasyGameFormResult {
+  request: FantasyGameRequest;
+  thumbnailFile: File | null;
+}
+
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+
+export const CURRENCY_OPTIONS = [
+  { value: '$', label: 'US Dollar ($)' },
+  { value: '€', label: 'Euro (€)' },
+  { value: '£', label: 'British Pound (£)' },
+  { value: 'RSD', label: 'Serbian Dinar (RSD)' },
+  { value: 'Coins', label: 'Coins' },
+  { value: 'Credits', label: 'Credits' },
+  { value: 'Points', label: 'Points' }
+];
+
 @Component({
   selector: 'app-fantasy-game-form-dialog',
   standalone: true,
@@ -26,28 +47,46 @@ interface WorkingScoringRule {
     ReactiveFormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule
   ],
   templateUrl: './fantasy-game-form-dialog.component.html',
   styleUrl: './fantasy-game-form-dialog.component.scss'
 })
 export class FantasyGameFormDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly dialogRef = inject(MatDialogRef<FantasyGameFormDialogComponent>);
+  private readonly dialogRef = inject(MatDialogRef<FantasyGameFormDialogComponent, FantasyGameFormResult>);
+  private readonly snackBar = inject(MatSnackBar);
   readonly data = inject<FantasyGameResponse | null>(MAT_DIALOG_DATA);
 
   private nextTempId = 1;
 
   readonly isEditMode = this.data !== null;
   readonly availablePositions = (this.data?.positions ?? []).map((p) => p.name);
+  readonly currencyOptions = CURRENCY_OPTIONS;
 
   readonly form = this.fb.group({
     name: [this.data?.name ?? '', [Validators.required]],
     description: [this.data?.description ?? ''],
-    budget: [this.data?.budget ?? null]
+    startDate: [this.data?.startDate ? new Date(this.data.startDate) : null],
+    endDate: [this.data?.endDate ? new Date(this.data.endDate) : null],
+    budget: [this.data?.budget ?? null],
+    currency: [this.data?.currency ?? null]
+  });
+
+  readonly thumbnailUrl = signal<string | null>(this.data?.thumbnailUrl ?? null);
+  readonly thumbnailFile = signal<File | null>(null);
+  readonly thumbnailPreviewUrl = computed(() => {
+    const file = this.thumbnailFile();
+    if (file) {
+      return URL.createObjectURL(file);
+    }
+    const url = this.thumbnailUrl();
+    return url ? `${environment.apiUrl}${url}` : null;
   });
 
   readonly scoringRules = signal<WorkingScoringRule[]>(
@@ -135,16 +174,47 @@ export class FantasyGameFormDialogComponent {
     this.ruleFormPositionPoints = {};
   }
 
+  onThumbnailSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Please select an image file.', 'Close', { duration: 3500 });
+      input.value = '';
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      this.snackBar.open('Image is too large. Maximum size is 10MB.', 'Close', { duration: 3500 });
+      input.value = '';
+      return;
+    }
+    this.thumbnailFile.set(file);
+    input.value = '';
+  }
+
+  removeThumbnail(): void {
+    this.thumbnailFile.set(null);
+    this.thumbnailUrl.set(null);
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
+    if (this.showScoringRuleForm && this.ruleFormName.trim()) {
+      this.confirmScoringRule();
+    }
+
     const raw = this.form.getRawValue();
-    const result: FantasyGameRequest = {
+    const request: FantasyGameRequest = {
       name: raw.name ?? '',
       description: raw.description || undefined,
+      startDate: this.toIsoDate(raw.startDate),
+      endDate: this.toIsoDate(raw.endDate),
       fieldRows: this.data?.fieldRows ?? 5,
       fieldCols: this.data?.fieldCols ?? 5,
       benchRows: this.data?.benchRows ?? undefined,
@@ -154,8 +224,10 @@ export class FantasyGameFormDialogComponent {
       pickBenchRows: this.data?.pickBenchRows ?? undefined,
       pickBenchCols: this.data?.pickBenchCols ?? undefined,
       budget: raw.budget ?? undefined,
+      currency: raw.currency ?? undefined,
       backgroundImageUrl: this.data?.backgroundImageUrl ?? undefined,
-      thumbnailUrl: this.data?.thumbnailUrl ?? undefined,
+      benchBackgroundImageUrl: this.data?.benchBackgroundImageUrl ?? undefined,
+      thumbnailUrl: this.thumbnailUrl() ?? undefined,
       positions: (this.data?.positions ?? []).map((p) => ({
         name: p.name,
         slots: p.slots.map((s) => ({ rowIndex: s.rowIndex, colIndex: s.colIndex }))
@@ -172,10 +244,20 @@ export class FantasyGameFormDialogComponent {
       }))
     };
 
-    this.dialogRef.close(result);
+    this.dialogRef.close({ request, thumbnailFile: this.thumbnailFile() });
   }
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  private toIsoDate(value: Date | null | undefined): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

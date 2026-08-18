@@ -14,8 +14,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { FantasyGameService } from '../../../core/services/fantasy-game.service';
-import { FantasyGameRequest, FantasyGameResponse } from '../../../core/models/fantasy-game.model';
-import { FantasyGameFormDialogComponent } from '../fantasy-game-form-dialog/fantasy-game-form-dialog.component';
+import { FantasyGameResponse } from '../../../core/models/fantasy-game.model';
+import {
+  FantasyGameFormDialogComponent,
+  FantasyGameFormResult
+} from '../fantasy-game-form-dialog/fantasy-game-form-dialog.component';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -96,14 +99,24 @@ export class FantasyGameListComponent implements OnInit {
   openCreateDialog(): void {
     const ref = this.dialog.open(FantasyGameFormDialogComponent, { data: null, width: '600px', maxWidth: '600px' });
 
-    ref.afterClosed().subscribe((result: FantasyGameRequest | undefined) => {
+    ref.afterClosed().subscribe((result: FantasyGameFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.fantasyGameService.create(result).subscribe({
+      this.fantasyGameService.create(result.request).subscribe({
         next: (created) => {
-          this.snackBar.open('Fantasy Game created. Now set up its field.', 'Close', { duration: 3000 });
-          this.router.navigate(['/fantasy-games', created.id, 'field']);
+          const proceed = () => {
+            this.snackBar.open('Fantasy Game created. Now set up its field.', 'Close', { duration: 3000 });
+            this.router.navigate(['/fantasy-games', created.id, 'field']);
+          };
+          if (result.thumbnailFile) {
+            this.fantasyGameService.uploadThumbnailImage(created.id, result.thumbnailFile).subscribe({
+              next: proceed,
+              error: proceed
+            });
+          } else {
+            proceed();
+          }
         },
         error: () => this.snackBar.open('Failed to create fantasy game.', 'Close', { duration: 3000 })
       });
@@ -121,14 +134,24 @@ export class FantasyGameListComponent implements OnInit {
   openEditDialog(fantasyGame: FantasyGameResponse): void {
     const ref = this.dialog.open(FantasyGameFormDialogComponent, { data: fantasyGame, width: '600px', maxWidth: '600px' });
 
-    ref.afterClosed().subscribe((result: FantasyGameRequest | undefined) => {
+    ref.afterClosed().subscribe((result: FantasyGameFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.fantasyGameService.update(fantasyGame.id, result).subscribe({
+      this.fantasyGameService.update(fantasyGame.id, result.request).subscribe({
         next: () => {
-          this.snackBar.open('Fantasy Game updated.', 'Close', { duration: 3000 });
-          this.load();
+          const proceed = () => {
+            this.snackBar.open('Fantasy Game updated.', 'Close', { duration: 3000 });
+            this.load();
+          };
+          if (result.thumbnailFile) {
+            this.fantasyGameService.uploadThumbnailImage(fantasyGame.id, result.thumbnailFile).subscribe({
+              next: proceed,
+              error: proceed
+            });
+          } else {
+            proceed();
+          }
         },
         error: () => this.snackBar.open('Failed to update fantasy game. You may not have permission.', 'Close', { duration: 4000 })
       });

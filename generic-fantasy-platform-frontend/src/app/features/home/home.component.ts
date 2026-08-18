@@ -6,8 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { FantasyGameService } from '../../core/services/fantasy-game.service';
-import { FantasyGameRequest } from '../../core/models/fantasy-game.model';
-import { FantasyGameFormDialogComponent } from '../fantasy-games/fantasy-game-form-dialog/fantasy-game-form-dialog.component';
+import {
+  FantasyGameFormDialogComponent,
+  FantasyGameFormResult
+} from '../fantasy-games/fantasy-game-form-dialog/fantasy-game-form-dialog.component';
 import { PopularFantasyGamesComponent } from './popular-fantasy-games/popular-fantasy-games.component';
 import { MyFantasyGamesComponent } from './my-fantasy-games/my-fantasy-games.component';
 
@@ -27,14 +29,24 @@ export class HomeComponent {
   openCreateFantasyGameDialog(): void {
     const ref = this.dialog.open(FantasyGameFormDialogComponent, { data: null, width: '600px', maxWidth: '600px' });
 
-    ref.afterClosed().subscribe((result: FantasyGameRequest | undefined) => {
+    ref.afterClosed().subscribe((result: FantasyGameFormResult | undefined) => {
       if (!result) {
         return;
       }
-      this.fantasyGameService.create(result).subscribe({
+      this.fantasyGameService.create(result.request).subscribe({
         next: (created) => {
-          this.snackBar.open('Fantasy Game created. Now set up its field.', 'Close', { duration: 3000 });
-          this.router.navigate(['/fantasy-games', created.id, 'field']);
+          const proceed = () => {
+            this.snackBar.open('Fantasy Game created. Now set up its field.', 'Close', { duration: 3000 });
+            this.router.navigate(['/fantasy-games', created.id, 'field']);
+          };
+          if (result.thumbnailFile) {
+            this.fantasyGameService.uploadThumbnailImage(created.id, result.thumbnailFile).subscribe({
+              next: proceed,
+              error: proceed
+            });
+          } else {
+            proceed();
+          }
         },
         error: () => this.snackBar.open('Failed to create fantasy game.', 'Close', { duration: 3000 })
       });
