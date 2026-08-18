@@ -10,20 +10,16 @@ table {
   width: 100%;
 }
 
-.scores-table {
-  max-width: 500px;
-  margin-top: 8px;
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
-.stat-input {
-  width: 70px;
+.not-applicable {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .empty-state {
   margin-top: 16px;
   color: rgba(255, 255, 255, 0.7);
-}
-
-h3 {
-  margin-top: 32px;
 }

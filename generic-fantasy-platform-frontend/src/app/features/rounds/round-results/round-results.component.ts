@@ -1,10 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -14,22 +13,21 @@ import { PlayerService } from '../../../core/services/player.service';
 import { PlayerResultService } from '../../../core/services/player-result.service';
 import { RoundService } from '../../../core/services/round.service';
 import { ScoreService } from '../../../core/services/score.service';
+import { FantasyGameScoringRuleResponse } from '../../../core/models/fantasy-game-scoring-rule.model';
 import { RoundResponse } from '../../../core/models/round.model';
-import { ScoreResponse } from '../../../core/models/score.model';
 
 interface PlayerResultRow {
   playerId: number;
   playerName: string;
   position: string;
   existingResultId: number | null;
-  stats: Record<string, number | null>;
-  pointsEarned: number | null;
+  enabledRules: Record<string, boolean>;
 }
 
 @Component({
   selector: 'app-round-results',
   standalone: true,
-  imports: [FormsModule, MatButtonModule, MatIconModule, MatInputModule, MatTableModule, MatToolbarModule],
+  imports: [MatButtonModule, MatIconModule, MatSlideToggleModule, MatTableModule, MatToolbarModule],
   templateUrl: './round-results.component.html',
   styleUrl: './round-results.component.scss'
 })
@@ -46,11 +44,9 @@ export class RoundResultsComponent implements OnInit {
   private roundId!: number;
 
   readonly round = signal<RoundResponse | null>(null);
-  readonly ruleNames = signal<string[]>([]);
+  readonly rules = signal<FantasyGameScoringRuleResponse[]>([]);
   readonly rows = signal<PlayerResultRow[]>([]);
-  readonly scores = signal<ScoreResponse[] | null>(null);
   readonly displayedColumns = signal<string[]>([]);
-  readonly scoreColumns = ['fantasyTeamName', 'points'];
 
   ngOnInit(): void {
     this.roundId = Number(this.route.snapshot.paramMap.get('id'));
@@ -66,16 +62,41 @@ export class RoundResultsComponent implements OnInit {
     }
   }
 
+  ruleAppliesTo(rule: FantasyGameScoringRuleResponse, position: string): boolean {
+    return this.resolveRulePoints(rule, position) !== null;
+  }
+
+  resolveRulePoints(rule: FantasyGameScoringRuleResponse, position: string): number | null {
+    if (!rule.variesByPosition) {
+      return rule.points ?? 0;
+    }
+    const match = rule.positionValues.find((v) => v.positionName === position);
+    return match ? match.points : null;
+  }
+
+  toggleRule(row: PlayerResultRow, ruleName: string): void {
+    row.enabledRules[ruleName] = !row.enabledRules[ruleName];
+  }
+
+  rowPoints(row: PlayerResultRow): number {
+    return this.rules().reduce((total, rule) => {
+      if (!row.enabledRules[rule.name]) {
+        return total;
+      }
+      const points = this.resolveRulePoints(rule, row.position);
+      return total + (points ?? 0);
+    }, 0);
+  }
+
   saveRow(row: PlayerResultRow): void {
     const resultsJson = JSON.stringify(
-      Object.fromEntries(Object.entries(row.stats).map(([key, value]) => [key, value ?? 0]))
+      Object.fromEntries(this.rules().map((rule) => [rule.name, row.enabledRules[rule.name] ? 1 : 0]))
     );
 
     if (row.existingResultId != null) {
       this.playerResultService.update(row.existingResultId, { playerId: row.playerId, roundId: this.roundId, resultsJson }).subscribe({
         next: (updated) => {
-          this.patchRow(row.playerId, { pointsEarned: updated.pointsEarned });
-          this.snackBar.open(`Result saved for ${row.playerName}.`, 'Close', { duration: 2500 });
+          this.snackBar.open(`Result saved for ${row.playerName} (${updated.pointsEarned ?? 0} pts).`, 'Close', { duration: 2500 });
         },
         error: () => this.snackBar.open(`Failed to save result for ${row.playerName}.`, 'Close', { duration: 3000 })
       });
@@ -84,10 +105,35 @@ export class RoundResultsComponent implements OnInit {
 
     this.playerResultService.create({ playerId: row.playerId, roundId: this.roundId, resultsJson }).subscribe({
       next: (created) => {
-        this.patchRow(row.playerId, { existingResultId: created.id, pointsEarned: created.pointsEarned });
-        this.snackBar.open(`Result saved for ${row.playerName}.`, 'Close', { duration: 2500 });
+        this.patchRow(row.playerId, { existingResultId: created.id });
+        this.snackBar.open(`Result saved for ${row.playerName} (${created.pointsEarned ?? 0} pts).`, 'Close', { duration: 2500 });
       },
       error: () => this.snackBar.open(`Failed to save result for ${row.playerName}.`, 'Close', { duration: 3000 })
+    });
+  }
+
+  saveAll(): void {
+    const requests = this.rows().map((row) => {
+      const resultsJson = JSON.stringify(
+        Object.fromEntries(this.rules().map((rule) => [rule.name, row.enabledRules[rule.name] ? 1 : 0]))
+      );
+      return row.existingResultId != null
+        ? this.playerResultService.update(row.existingResultId, { playerId: row.playerId, roundId: this.roundId, resultsJson })
+        : this.playerResultService.create({ playerId: row.playerId, roundId: this.roundId, resultsJson });
+    });
+
+    if (requests.length === 0) {
+      return;
+    }
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        results.forEach((result, index) => {
+          this.patchRow(this.rows()[index].playerId, { existingResultId: result.id });
+        });
+        this.snackBar.open('All results saved.', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to save all results.', 'Close', { duration: 4000 })
     });
   }
 
@@ -97,10 +143,7 @@ export class RoundResultsComponent implements OnInit {
 
   calculateScores(): void {
     this.scoreService.calculate(this.roundId).subscribe({
-      next: (scores) => {
-        this.scores.set(scores);
-        this.snackBar.open('Scores calculated.', 'Close', { duration: 3000 });
-      },
+      next: () => this.snackBar.open('Scores calculated.', 'Close', { duration: 3000 }),
       error: () => this.snackBar.open('Failed to calculate scores. You may not have permission.', 'Close', { duration: 4000 })
     });
   }
@@ -114,9 +157,9 @@ export class RoundResultsComponent implements OnInit {
         players: this.playerService.getAll(round.fantasyGameId),
         results: this.playerResultService.getByRound(this.roundId)
       }).subscribe(({ fantasyGame, players, results }) => {
-        const ruleNames = fantasyGame.scoringRules.map((rule) => rule.name);
-        this.ruleNames.set(ruleNames);
-        this.displayedColumns.set(['player', 'position', ...ruleNames, 'pointsEarned', 'actions']);
+        const rules = fantasyGame.scoringRules;
+        this.rules.set(rules);
+        this.displayedColumns.set(['player', 'position', ...rules.map((r) => r.name), 'points', 'actions']);
 
         const resultByPlayerId = new Map(results.map((result) => [result.playerId, result]));
 
@@ -124,26 +167,19 @@ export class RoundResultsComponent implements OnInit {
           players.map((player) => {
             const existing = resultByPlayerId.get(player.id);
             const parsedStats: Record<string, number> = existing?.resultsJson ? JSON.parse(existing.resultsJson) : {};
-            const stats: Record<string, number | null> = {};
-            for (const ruleName of ruleNames) {
-              stats[ruleName] = parsedStats[ruleName] ?? 0;
+            const enabledRules: Record<string, boolean> = {};
+            for (const rule of rules) {
+              enabledRules[rule.name] = Boolean(parsedStats[rule.name]);
             }
             return {
               playerId: player.id,
               playerName: `${player.firstName} ${player.lastName}`,
               position: player.position,
               existingResultId: existing?.id ?? null,
-              stats,
-              pointsEarned: existing?.pointsEarned ?? null
+              enabledRules
             };
           })
         );
-      });
-
-      this.scoreService.getByRound(this.roundId).subscribe((scores) => {
-        if (scores.length > 0) {
-          this.scores.set(scores);
-        }
       });
     });
   }
