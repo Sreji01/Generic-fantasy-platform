@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -38,11 +39,12 @@ const BENCH_SECTION_ROW_LIMIT = 0;
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     MatToolbarModule,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   templateUrl: './team-builder.component.html',
-  styleUrl: './team-builder.component.scss'
+  styleUrl: './team-builder.component.scss',
 })
 export class TeamBuilderComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -56,6 +58,7 @@ export class TeamBuilderComponent implements OnInit {
   private fantasyGameId!: number;
   private teamId: number | null = null;
   private joinLeagueId: number | null = null;
+  private joinCode: string | null = null;
 
   readonly isEditMode = computed(() => this.teamId != null);
   readonly teamName = signal('');
@@ -63,30 +66,61 @@ export class TeamBuilderComponent implements OnInit {
   readonly players = signal<PlayerResponse[]>([]);
   readonly selectedPlayerIds = signal<Set<number>>(new Set());
   readonly positionFilter = signal<string | null>(null);
+  readonly selectedSlotKey = signal<string | null>(null);
+  readonly clubFilter = signal<string | null>(null);
+  readonly minPriceFilter = signal<number | null>(null);
+  readonly maxPriceFilter = signal<number | null>(null);
+  readonly priceSortDirection = signal<'asc' | 'desc'>('desc');
   readonly saving = signal(false);
 
   readonly cellSize = 90;
 
   readonly usePickField = computed(() => {
     const fantasyGame = this.fantasyGame();
-    return this.isEditMode() && fantasyGame?.pickFieldRows != null && fantasyGame?.pickFieldCols != null;
+    return (
+      this.isEditMode() && fantasyGame?.pickFieldRows != null && fantasyGame?.pickFieldCols != null
+    );
   });
 
   private readonly activeFieldRows = computed(
-    () => (this.usePickField() ? this.fantasyGame()?.pickFieldRows : this.fantasyGame()?.fieldRows) ?? 0
+    () =>
+      (this.usePickField() ? this.fantasyGame()?.pickFieldRows : this.fantasyGame()?.fieldRows) ??
+      0,
   );
   private readonly activeFieldCols = computed(
-    () => (this.usePickField() ? this.fantasyGame()?.pickFieldCols : this.fantasyGame()?.fieldCols) ?? 0
+    () =>
+      (this.usePickField() ? this.fantasyGame()?.pickFieldCols : this.fantasyGame()?.fieldCols) ??
+      0,
   );
   private readonly activePositions = computed(
-    () => (this.usePickField() ? this.fantasyGame()?.pickPositions : this.fantasyGame()?.positions) ?? []
+    () =>
+      (this.usePickField() ? this.fantasyGame()?.pickPositions : this.fantasyGame()?.positions) ??
+      [],
   );
 
   readonly gridRows = computed(() => Array.from({ length: this.activeFieldRows() }, (_, i) => i));
   readonly gridCols = computed(() => Array.from({ length: this.activeFieldCols() }, (_, i) => i));
 
+  private static readonly FILTER_ROWS_HEIGHT_PX = 168;
+
+  readonly playersListHeightPx = computed(() => {
+    const rows = this.gridRows().length;
+    if (rows === 0) {
+      return 0;
+    }
+    const gaps = (rows - 1) * 2;
+    const paddingAndBorder = 4 * 2 + 2 * 2;
+    const fieldHeight = rows * this.cellSize + gaps + paddingAndBorder;
+    return Math.max(0, fieldHeight - TeamBuilderComponent.FILTER_ROWS_HEIGHT_PX);
+  });
+
   readonly backgroundDisplayUrl = computed(() => {
     const url = this.fantasyGame()?.backgroundImageUrl;
+    return url ? `${environment.apiUrl}${url}` : null;
+  });
+
+  readonly benchBackgroundDisplayUrl = computed(() => {
+    const url = this.fantasyGame()?.benchBackgroundImageUrl;
     return url ? `${environment.apiUrl}${url}` : null;
   });
 
@@ -95,17 +129,32 @@ export class TeamBuilderComponent implements OnInit {
     return this.players().filter((p) => ids.has(p.id));
   });
 
-  readonly totalCost = computed(() => this.selectedPlayers().reduce((sum, p) => sum + (p.price ?? 0), 0));
+  readonly totalCost = computed(() =>
+    this.selectedPlayers().reduce((sum, p) => sum + (p.price ?? 0), 0),
+  );
 
   readonly overBudget = computed(() => {
     const budget = this.fantasyGame()?.budget;
     return budget != null && this.totalCost() > budget;
   });
 
+  readonly currencyLabel = computed(() => {
+    const currency = this.fantasyGame()?.currency;
+    return currency ? ` ${currency}` : '';
+  });
+
+  readonly totalRequiredPlayers = computed(() =>
+    this.activePositions().reduce((sum, p) => sum + p.slots.length, 0),
+  );
+
+  readonly hasFullRoster = computed(() => {
+    const total = this.totalRequiredPlayers();
+    return total > 0 && this.selectedPlayerIds().size === total;
+  });
+
   readonly canSubmit = computed(() => {
     const hasName = this.teamName().trim().length > 0;
-    const hasPlayers = this.selectedPlayerIds().size > 0;
-    return hasName && hasPlayers && !this.overBudget() && !this.saving();
+    return hasName && this.hasFullRoster() && !this.overBudget() && !this.saving();
   });
 
   readonly slotsByPosition = computed(() => {
@@ -137,7 +186,12 @@ export class TeamBuilderComponent implements OnInit {
     for (const position of positions) {
       const remaining = remainingByPosition.get(position.name) ?? [];
       for (const slot of position.slots) {
-        result.push({ row: slot.rowIndex, col: slot.colIndex, positionName: position.name, player: remaining.shift() ?? null });
+        result.push({
+          row: slot.rowIndex,
+          col: slot.colIndex,
+          positionName: position.name,
+          player: remaining.shift() ?? null,
+        });
       }
     }
     return result;
@@ -145,17 +199,54 @@ export class TeamBuilderComponent implements OnInit {
 
   readonly fieldSlots = computed(() =>
     this.allSlots().filter(
-      (s) => s.row >= 0 && s.row < this.gridRows().length && s.col >= 0 && s.col < this.gridCols().length
-    )
+      (s) =>
+        s.row >= 0 &&
+        s.row < this.gridRows().length &&
+        s.col >= 0 &&
+        s.col < this.gridCols().length,
+    ),
   );
 
-  readonly benchSlots = computed(() => this.allSlots().filter((s) => s.row < BENCH_SECTION_ROW_LIMIT));
+  readonly benchSlots = computed(() =>
+    this.allSlots().filter((s) => s.row < BENCH_SECTION_ROW_LIMIT),
+  );
 
-  readonly sortedPlayers = computed(() => [...this.players()].sort((a, b) => (b.price ?? 0) - (a.price ?? 0)));
+  readonly clubNames = computed(() =>
+    [
+      ...new Set(
+        this.players()
+          .map((p) => p.realTeam)
+          .filter((team): team is string => !!team),
+      ),
+    ].sort(),
+  );
+
+  readonly sortedPlayers = computed(() => {
+    const direction = this.priceSortDirection() === 'asc' ? 1 : -1;
+    return [...this.players()].sort((a, b) => direction * ((a.price ?? 0) - (b.price ?? 0)));
+  });
 
   readonly filteredPlayers = computed(() => {
-    const filter = this.positionFilter();
-    return filter ? this.sortedPlayers().filter((p) => p.position === filter) : this.sortedPlayers();
+    const position = this.positionFilter();
+    const club = this.clubFilter();
+    const min = this.minPriceFilter();
+    const max = this.maxPriceFilter();
+
+    return this.sortedPlayers().filter((p) => {
+      if (position && p.position !== position) {
+        return false;
+      }
+      if (club && p.realTeam !== club) {
+        return false;
+      }
+      if (min != null && (p.price ?? 0) < min) {
+        return false;
+      }
+      if (max != null && (p.price ?? 0) > max) {
+        return false;
+      }
+      return true;
+    });
   });
 
   ngOnInit(): void {
@@ -164,8 +255,11 @@ export class TeamBuilderComponent implements OnInit {
     this.teamId = teamIdParam ? Number(teamIdParam) : null;
     const joinLeagueIdParam = this.route.snapshot.queryParamMap.get('joinLeagueId');
     this.joinLeagueId = joinLeagueIdParam ? Number(joinLeagueIdParam) : null;
+    this.joinCode = this.route.snapshot.queryParamMap.get('code');
 
-    this.fantasyGameService.getById(this.fantasyGameId).subscribe((fantasyGame) => this.fantasyGame.set(fantasyGame));
+    this.fantasyGameService
+      .getById(this.fantasyGameId)
+      .subscribe((fantasyGame) => this.fantasyGame.set(fantasyGame));
     this.playerService.getAll(this.fantasyGameId).subscribe((players) => this.players.set(players));
 
     if (this.teamId != null) {
@@ -199,7 +293,11 @@ export class TeamBuilderComponent implements OnInit {
   }
 
   canAddPlayer(player: PlayerResponse): boolean {
-    return !this.isSelected(player) && this.hasFreeSlot(player.position) && !this.wouldExceedBudget(player);
+    return (
+      !this.isSelected(player) &&
+      this.hasFreeSlot(player.position) &&
+      !this.wouldExceedBudget(player)
+    );
   }
 
   playerShortLabel(player: PlayerResponse): string {
@@ -234,12 +332,47 @@ export class TeamBuilderComponent implements OnInit {
     });
   }
 
-  filterByPosition(positionName: string): void {
-    this.positionFilter.set(this.positionFilter() === positionName ? null : positionName);
+  slotKey(row: number, col: number, bench: boolean): string {
+    return `${bench ? 'bench' : 'field'}-${row}-${col}`;
   }
 
-  clearFilter(): void {
-    this.positionFilter.set(null);
+  selectSlot(cell: SlotCell, key: string): void {
+    if (this.selectedSlotKey() === key) {
+      this.selectedSlotKey.set(null);
+      this.positionFilter.set(null);
+    } else {
+      this.selectedSlotKey.set(key);
+      this.positionFilter.set(cell.positionName);
+    }
+  }
+
+  setPositionFilter(positionName: string | null): void {
+    this.selectedSlotKey.set(null);
+    this.positionFilter.set(positionName);
+  }
+
+  filterByClub(club: string): void {
+    this.clubFilter.set(this.clubFilter() === club ? null : club);
+  }
+
+  setMinPriceFilter(value: number | string | null): void {
+    this.minPriceFilter.set(this.parsePriceInput(value));
+  }
+
+  setMaxPriceFilter(value: number | string | null): void {
+    this.maxPriceFilter.set(this.parsePriceInput(value));
+  }
+
+  private parsePriceInput(value: number | string | null): number | null {
+    if (value == null || value === '') {
+      return null;
+    }
+    const parsed = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  togglePriceSort(): void {
+    this.priceSortDirection.set(this.priceSortDirection() === 'desc' ? 'asc' : 'desc');
   }
 
   playerPhotoUrl(player: PlayerResponse): string | null {
@@ -258,29 +391,37 @@ export class TeamBuilderComponent implements OnInit {
     const request: FantasyTeamRequest = {
       name: this.teamName().trim(),
       fantasyGameId: this.fantasyGameId,
-      playerIds: [...this.selectedPlayerIds()]
+      playerIds: [...this.selectedPlayerIds()],
     };
 
     this.saving.set(true);
     const teamId = this.teamId;
-    const request$ = teamId != null ? this.fantasyTeamService.update(teamId, request) : this.fantasyTeamService.create(request);
+    const request$ =
+      teamId != null
+        ? this.fantasyTeamService.update(teamId, request)
+        : this.fantasyTeamService.create(request);
 
     request$.subscribe({
       next: (team) => {
-        this.snackBar.open(teamId != null ? 'Team updated.' : 'Team created!', 'Close', { duration: 3000 });
+        this.snackBar.open(teamId != null ? 'Team updated.' : 'Team created!', 'Close', {
+          duration: 3000,
+        });
 
         if (this.joinLeagueId != null && teamId == null) {
-          this.fantasyTeamService.joinLeague(team.id, this.joinLeagueId).subscribe({
-            next: () => {
-              this.snackBar.open('Joined league.', 'Close', { duration: 3000 });
-              this.router.navigate(['/fantasy-teams', team.id]);
-            },
-            error: (err) => {
-              const message = err?.error?.message ?? 'Team created, but failed to join the league.';
-              this.snackBar.open(message, 'Close', { duration: 4000 });
-              this.router.navigate(['/fantasy-teams', team.id]);
-            }
-          });
+          this.fantasyTeamService
+            .joinLeague(team.id, this.joinLeagueId, this.joinCode ?? undefined)
+            .subscribe({
+              next: () => {
+                this.snackBar.open('Joined league.', 'Close', { duration: 3000 });
+                this.router.navigate(['/fantasy-teams', team.id]);
+              },
+              error: (err) => {
+                const message =
+                  err?.error?.message ?? 'Team created, but failed to join the league.';
+                this.snackBar.open(message, 'Close', { duration: 4000 });
+                this.router.navigate(['/fantasy-teams', team.id]);
+              },
+            });
           return;
         }
 
@@ -290,7 +431,7 @@ export class TeamBuilderComponent implements OnInit {
         this.saving.set(false);
         const message = err?.error?.message ?? 'Failed to save team.';
         this.snackBar.open(message, 'Close', { duration: 4000 });
-      }
+      },
     });
   }
 }

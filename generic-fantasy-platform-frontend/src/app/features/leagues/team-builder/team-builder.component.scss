@@ -26,6 +26,11 @@
     color: #b3261e;
     font-weight: 600;
   }
+
+  .player-count {
+    color: var(--mat-sys-primary);
+    font-weight: 600;
+  }
 }
 
 .warning {
@@ -33,6 +38,7 @@
   font-size: 0.85rem;
   margin: 0;
 }
+
 
 .builder-row {
   display: flex;
@@ -59,7 +65,6 @@
   display: grid;
   gap: 2px;
   width: fit-content;
-  margin-top: 56px;
   background-color: #e3f2e1;
   background-size: cover;
   background-position: center;
@@ -118,6 +123,14 @@
   color: var(--mat-sys-primary);
 }
 
+.slot-photo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .slot-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -164,6 +177,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding: 6px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
 }
 
 .players-column {
@@ -171,21 +188,32 @@
   margin-right: 64px;
 }
 
-.position-chips {
+.filter-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
   margin-bottom: 8px;
 
-  button {
-    min-width: 0;
-    padding: 0 12px;
-    border-radius: 16px;
+  mat-form-field {
+    width: 140px;
   }
+}
 
-  button.active {
-    background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-    color: var(--mat-sys-primary);
+.price-filter {
+  width: 128px !important;
+}
+
+.sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -194,6 +222,7 @@
   margin: 0;
   padding: 0;
   max-width: 560px;
+  overflow-y: auto;
 
   li {
     display: flex;

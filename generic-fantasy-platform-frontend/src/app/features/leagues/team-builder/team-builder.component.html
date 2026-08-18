@@ -9,13 +9,23 @@
   <div class="top-row">
     <mat-form-field appearance="outline" class="team-name-field">
       <mat-label>Team name</mat-label>
-      <input matInput [ngModel]="teamName()" (ngModelChange)="teamName.set($event)" name="teamName" />
+      <input
+        matInput
+        [ngModel]="teamName()"
+        (ngModelChange)="teamName.set($event)"
+        name="teamName"
+      />
     </mat-form-field>
 
     <div class="summary-row">
-      <span>{{ selectedPlayerIds().size }} players</span>
+      <span class="player-count"
+        >{{ selectedPlayerIds().size }} / {{ totalRequiredPlayers() }} players</span
+      >
       @if (fantasyGame()?.budget != null) {
-        <span [class.over-limit]="overBudget()">{{ totalCost() }} / {{ fantasyGame()!.budget }} budget</span>
+        <span [class.over-limit]="overBudget()">
+          {{ totalCost() }}{{ currencyLabel() }} / {{ fantasyGame()!.budget
+          }}{{ currencyLabel() }} budget
+        </span>
       }
     </div>
   </div>
@@ -30,7 +40,9 @@
         class="grid-field"
         [style.grid-template-columns]="'repeat(' + gridCols().length + ', ' + cellSize + 'px)'"
         [style.grid-template-rows]="'repeat(' + gridRows().length + ', ' + cellSize + 'px)'"
-        [style.background-image]="backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null"
+        [style.background-image]="
+          backgroundDisplayUrl() ? 'url(' + backgroundDisplayUrl() + ')' : null
+        "
       >
         @for (row of gridRows(); track row) {
           @for (col of gridCols(); track col) {
@@ -39,10 +51,14 @@
                 <mat-card
                   class="slot-card"
                   [class.filled]="cell.player"
-                  [class.active-filter]="positionFilter() === cell.positionName"
-                  (click)="filterByPosition(cell.positionName)"
+                  [class.active-filter]="selectedSlotKey() === slotKey(row, col, false)"
+                  (click)="selectSlot(cell, slotKey(row, col, false))"
                 >
-                  <mat-icon class="slot-icon">account_circle</mat-icon>
+                  @if (cell.player && playerPhotoUrl(cell.player); as url) {
+                    <img [src]="url" alt="" class="slot-photo" />
+                  } @else {
+                    <mat-icon class="slot-icon">account_circle</mat-icon>
+                  }
                   <span class="slot-label">
                     {{ cell.player ? playerShortLabel(cell.player) : cell.positionName }}
                   </span>
@@ -67,17 +83,30 @@
       @if (benchSlots().length > 0) {
         <div class="bench-row">
           <span class="bench-label">Bench</span>
-          <div class="bench-cards">
+          <div
+            class="bench-cards"
+            [style.background-image]="
+              benchBackgroundDisplayUrl() ? 'url(' + benchBackgroundDisplayUrl() + ')' : null
+            "
+          >
             @for (cell of benchSlots(); track cell.row + '-' + cell.col) {
               <mat-card
                 class="slot-card small"
                 [class.filled]="cell.player"
-                [class.active-filter]="positionFilter() === cell.positionName"
-                (click)="filterByPosition(cell.positionName)"
+                [class.active-filter]="selectedSlotKey() === slotKey(cell.row, cell.col, true)"
+                (click)="selectSlot(cell, slotKey(cell.row, cell.col, true))"
               >
-                <mat-icon class="slot-icon">account_circle</mat-icon>
+                @if (cell.player && playerPhotoUrl(cell.player); as url) {
+                  <img [src]="url" alt="" class="slot-photo" />
+                } @else {
+                  <mat-icon class="slot-icon">account_circle</mat-icon>
+                }
                 <span class="slot-label">
-                  {{ cell.player ? cell.player.firstName + ' ' + cell.player.lastName : cell.positionName }}
+                  {{
+                    cell.player
+                      ? cell.player.firstName + ' ' + cell.player.lastName
+                      : cell.positionName
+                  }}
                 </span>
                 @if (cell.player) {
                   <button
@@ -98,17 +127,71 @@
     </div>
 
     <div class="players-column">
-      <div class="position-chips">
-        <button mat-button type="button" [class.active]="positionFilter() === null" (click)="clearFilter()">All</button>
-        @for (position of positionNames(); track position) {
-          <button mat-button type="button" [class.active]="positionFilter() === position" (click)="filterByPosition(position)">
-            {{ position }}
-          </button>
+      <div class="filter-row">
+        <mat-form-field appearance="outline" class="position-filter">
+          <mat-label>Position</mat-label>
+          <mat-select
+            [ngModel]="positionFilter()"
+            (ngModelChange)="setPositionFilter($event)"
+            name="positionFilter"
+          >
+            <mat-option [value]="null">All positions</mat-option>
+            @for (position of positionNames(); track position) {
+              <mat-option [value]="position">{{ position }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (clubNames().length > 0) {
+          <mat-form-field appearance="outline" class="club-filter">
+            <mat-label>Club</mat-label>
+            <mat-select
+              [ngModel]="clubFilter()"
+              (ngModelChange)="filterByClub($event)"
+              name="clubFilter"
+            >
+              <mat-option [value]="null">All clubs</mat-option>
+              @for (club of clubNames(); track club) {
+                <mat-option [value]="club">{{ club }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
         }
       </div>
 
+      <div class="filter-row">
+        <mat-form-field appearance="outline" class="price-filter">
+          <mat-label>Min price</mat-label>
+          <input
+            matInput
+            type="number"
+            [ngModel]="minPriceFilter()"
+            (ngModelChange)="setMinPriceFilter($event)"
+            name="minPrice"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="price-filter">
+          <mat-label>Max price</mat-label>
+          <input
+            matInput
+            type="number"
+            [ngModel]="maxPriceFilter()"
+            (ngModelChange)="setMaxPriceFilter($event)"
+            name="maxPrice"
+          />
+        </mat-form-field>
+
+        <button mat-button type="button" class="sort-toggle" (click)="togglePriceSort()">
+          <mat-icon>{{
+            priceSortDirection() === 'desc' ? 'arrow_downward' : 'arrow_upward'
+          }}</mat-icon>
+          Price
+        </button>
+      </div>
+
       @if (filteredPlayers().length > 0) {
-        <ul class="players-list">
+        <ul class="players-list" [style.max-height.px]="playersListHeightPx()">
           @for (player of filteredPlayers(); track player.id) {
             <li [class.selected]="isSelected(player)">
               @if (playerPhotoUrl(player); as url) {
@@ -126,7 +209,7 @@
                 </span>
               </span>
               @if (player.price != null) {
-                <span class="player-price">{{ player.price }}</span>
+                <span class="player-price">{{ player.price }}{{ currencyLabel() }}</span>
               }
               @if (isSelected(player)) {
                 <button
@@ -162,7 +245,21 @@
 
   <div class="save-row">
     <button mat-button type="button" (click)="cancel()">Cancel</button>
-    <button mat-flat-button color="primary" class="save-team-btn" type="button" [disabled]="!canSubmit()" (click)="save()">
+    <button
+      mat-flat-button
+      color="primary"
+      class="save-team-btn"
+      type="button"
+      [disabled]="!canSubmit()"
+      [matTooltip]="
+        !hasFullRoster()
+          ? 'Fill every position before saving'
+          : overBudget()
+            ? 'Team exceeds the budget'
+            : ''
+      "
+      (click)="save()"
+    >
       <mat-icon>save</mat-icon>
       {{ isEditMode() ? 'Save Changes' : 'Create Team' }}
     </button>
