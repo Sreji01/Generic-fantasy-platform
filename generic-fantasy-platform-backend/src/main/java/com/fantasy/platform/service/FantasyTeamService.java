@@ -116,13 +116,15 @@ public class FantasyTeamService {
         return toResponse(findTeamOrThrow(id));
     }
 
+    /**
+     * Roster edits are always allowed: a saved lineup only takes effect starting with the
+     * next round, so there is nothing to protect by locking it while a round is active.
+     */
     public FantasyTeamResponse update(Long id, FantasyTeamRequest request, Long userId) {
         FantasyTeam team = findTeamOrThrow(id);
-        User currentUser = requireOwnerOrAdmin(team, userId);
+        requireOwnerOrAdmin(team, userId);
 
         FantasyGame fantasyGame = team.getFantasyGame();
-        requireTransfersUnlocked(fantasyGame, currentUser);
-
         List<Player> players = resolvePlayers(request.playerIds(), fantasyGame);
         applyRequest(team, request, fantasyGame, players);
 
@@ -158,11 +160,6 @@ public class FantasyTeamService {
                 .anyMatch(t -> t.getUser().getId().equals(currentUser.getId()));
         if (userHasOtherTeamInLeague) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You already have a team in this league");
-        }
-
-        if (league.getMaxPlayersPerTeam() != null && team.getPlayers().size() > league.getMaxPlayersPerTeam()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Team exceeds the maximum of " + league.getMaxPlayersPerTeam() + " players allowed in this league");
         }
 
         team.getLeagues().add(league);
@@ -254,6 +251,15 @@ public class FantasyTeamService {
         boolean hasActiveRound = roundRepository.existsByFantasyGameIdAndStatus(fantasyGame.getId(), RoundStatus.ACTIVE);
         if (hasActiveRound) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Team changes are locked while a round is active");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean pastTransferDeadline = roundRepository.findByFantasyGameId(fantasyGame.getId()).stream()
+                .anyMatch(round -> round.getStatus() != RoundStatus.FINISHED
+                        && round.getTransferDeadline() != null
+                        && !now.isBefore(round.getTransferDeadline()));
+        if (pastTransferDeadline) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Team changes are locked past the transfer deadline");
         }
     }
 
