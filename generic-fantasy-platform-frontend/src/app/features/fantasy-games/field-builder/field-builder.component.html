@@ -58,27 +58,6 @@
       }
     </div>
 
-    <div class="add-form">
-      <input
-        #thumbnailInput
-        type="file"
-        accept="image/*"
-        hidden
-        (change)="onThumbnailImageSelected($event)"
-      />
-      <button mat-flat-button type="button" [disabled]="uploadingThumbnail()" (click)="thumbnailInput.click()">
-        <mat-icon>image</mat-icon>
-        Upload Thumbnail
-      </button>
-      @if (uploadingThumbnail()) {
-        <mat-spinner diameter="20"></mat-spinner>
-      }
-      @if (thumbnailDisplayUrl(); as url) {
-        <img [src]="url" alt="Thumbnail preview" class="thumbnail-preview" />
-        <button mat-button type="button" (click)="removeThumbnailImage()">Remove Thumbnail</button>
-      }
-    </div>
-
   </div>
 
   <div cdkDropListGroup>
@@ -174,23 +153,6 @@
       </p>
     } @else {
       <div class="toolbars-row">
-        <form class="add-form" (ngSubmit)="addPickPosition()">
-          <mat-form-field appearance="outline" class="position-name-field">
-            <mat-label>Position name</mat-label>
-            <input matInput name="pickPositionName" [(ngModel)]="pickNewPositionName" placeholder="e.g. GK" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="points-field">
-            <mat-label>Player count</mat-label>
-            <input matInput type="number" name="pickPositionCount" [(ngModel)]="pickNewPositionCount" min="1" />
-          </mat-form-field>
-
-          <button mat-flat-button color="primary" type="submit">
-            <mat-icon>add</mat-icon>
-            Add Position
-          </button>
-        </form>
-
         <form class="add-form" (ngSubmit)="applyPickFieldSize()">
           <mat-form-field appearance="outline" class="points-field">
             <mat-label>Width</mat-label>
@@ -229,6 +191,28 @@
             </form>
           }
         </div>
+
+        @if (hasPickBench()) {
+          <div class="add-form">
+            <input
+              #benchBackgroundInput
+              type="file"
+              accept="image/*"
+              hidden
+              (change)="onBenchBackgroundImageSelected($event)"
+            />
+            <button mat-flat-button type="button" [disabled]="uploadingBenchBackground()" (click)="benchBackgroundInput.click()">
+              <mat-icon>image</mat-icon>
+              Upload Bench Background
+            </button>
+            @if (uploadingBenchBackground()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            }
+            @if (benchBackgroundImageUrl()) {
+              <button mat-button type="button" (click)="removeBenchBackgroundImage()">Remove Bench Background</button>
+            }
+          </div>
+        }
       </div>
 
       <div cdkDropListGroup>
@@ -305,8 +289,10 @@
             <h4 class="bench-label">Bench</h4>
             <div
               class="grid-field bench-grid"
+              [class.has-background]="benchBackgroundImageUrl()"
               [style.grid-template-columns]="'repeat(' + pickBenchCols() + ', ' + cellSize + 'px)'"
               [style.grid-template-rows]="'repeat(' + pickBenchRows() + ', ' + cellSize + 'px)'"
+              [style.background-image]="benchBackgroundImageDisplayUrl() ? 'url(' + benchBackgroundImageDisplayUrl() + ')' : null"
             >
               @for (row of pickBenchGridRows(); track row) {
                 @for (col of pickBenchGridCols(); track col) {

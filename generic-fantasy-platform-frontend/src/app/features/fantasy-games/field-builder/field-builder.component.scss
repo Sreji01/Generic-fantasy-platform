@@ -26,9 +26,15 @@
 
 .scoring-rule-form {
   flex-wrap: wrap;
+  align-items: center;
 
   .varies-checkbox {
-    margin-top: 4px;
+    display: flex;
+    align-items: center;
+
+    ::ng-deep .mdc-form-field {
+      align-items: center;
+    }
   }
 }
 
@@ -46,14 +52,6 @@
 .position-name-field,
 .points-field {
   max-width: 150px;
-}
-
-.thumbnail-preview {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .toolbars-row {

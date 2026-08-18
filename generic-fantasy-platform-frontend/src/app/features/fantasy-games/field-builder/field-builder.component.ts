@@ -18,7 +18,7 @@ import { environment } from '../../../../environments/environment';
 
 const ROTATION_ROW = -1;
 const BENCH_ROW_OFFSET = -2;
-const CELL_SIZE = 90;
+const CELL_SIZE = 75;
 const DEFAULT_FIELD_SIZE = 5;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -119,8 +119,6 @@ export class FieldBuilderComponent implements OnInit {
   pickBenchColsInput = DEFAULT_FIELD_SIZE;
 
   readonly pickPositions = signal<WorkingPosition[]>([]);
-  pickNewPositionName = '';
-  pickNewPositionCount = 1;
 
   readonly fantasyGameName = signal('');
   readonly backgroundImageUrl = signal<string | null>(null);
@@ -128,13 +126,14 @@ export class FieldBuilderComponent implements OnInit {
     const url = this.backgroundImageUrl();
     return url ? `${environment.apiUrl}${url}` : null;
   });
-  readonly thumbnailUrl = signal<string | null>(null);
-  readonly thumbnailDisplayUrl = computed(() => {
-    const url = this.thumbnailUrl();
+  readonly benchBackgroundImageUrl = signal<string | null>(null);
+  readonly benchBackgroundImageDisplayUrl = computed(() => {
+    const url = this.benchBackgroundImageUrl();
     return url ? `${environment.apiUrl}${url}` : null;
   });
+  private readonly thumbnailUrl = signal<string | null>(null);
   readonly uploadingBackground = signal(false);
-  readonly uploadingThumbnail = signal(false);
+  readonly uploadingBenchBackground = signal(false);
   readonly positions = signal<WorkingPosition[]>([]);
   readonly scoringRules = signal<WorkingScoringRule[]>([]);
 
@@ -162,6 +161,7 @@ export class FieldBuilderComponent implements OnInit {
       this.benchRowsInput = fantasyGame.benchRows ?? 1;
       this.benchColsInput = fantasyGame.benchCols ?? fantasyGame.fieldCols;
       this.backgroundImageUrl.set(fantasyGame.backgroundImageUrl);
+      this.benchBackgroundImageUrl.set(fantasyGame.benchBackgroundImageUrl);
       this.thumbnailUrl.set(fantasyGame.thumbnailUrl);
       this.positions.set(
         fantasyGame.positions.map((p) => ({
@@ -331,37 +331,6 @@ export class FieldBuilderComponent implements OnInit {
     return null;
   }
 
-  addPickPosition(): void {
-    const name = this.pickNewPositionName.trim();
-    if (!name || this.pickNewPositionCount < 1) {
-      return;
-    }
-
-    const freeSlots = this.findFreePickRotationSlots(this.pickNewPositionCount);
-    if (freeSlots.length < this.pickNewPositionCount) {
-      this.snackBar.open('Not enough free rotation slots. Move players onto the field first.', 'Close', { duration: 3500 });
-      return;
-    }
-
-    const newSlots: WorkingSlot[] = freeSlots.map((col) => ({
-      tempId: this.nextTempId++,
-      rowIndex: ROTATION_ROW,
-      colIndex: col
-    }));
-
-    const existing = this.pickPositions().find((p) => p.name === name);
-    if (existing) {
-      this.pickPositions.update((positions) =>
-        positions.map((p) => (p.tempId === existing.tempId ? { ...p, slots: [...p.slots, ...newSlots] } : p))
-      );
-    } else {
-      this.pickPositions.update((positions) => [...positions, { tempId: this.nextTempId++, name, slots: newSlots }]);
-    }
-
-    this.pickNewPositionName = '';
-    this.pickNewPositionCount = 1;
-  }
-
   removePickSlot(positionTempId: number, slotTempId: number): void {
     this.pickPositions.update((positions) =>
       positions
@@ -389,16 +358,6 @@ export class FieldBuilderComponent implements OnInit {
           : p
       )
     );
-  }
-
-  private findFreePickRotationSlots(count: number): number[] {
-    const found: number[] = [];
-    for (let col = 0; col < this.pickRotationCount() && found.length < count; col++) {
-      if (!this.isPickCellOccupied(ROTATION_ROW, col)) {
-        found.push(col);
-      }
-    }
-    return found;
   }
 
   onBackgroundImageSelected(event: Event): void {
@@ -431,7 +390,7 @@ export class FieldBuilderComponent implements OnInit {
     this.backgroundImageUrl.set(null);
   }
 
-  onThumbnailImageSelected(event: Event): void {
+  onBenchBackgroundImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) {
@@ -442,19 +401,23 @@ export class FieldBuilderComponent implements OnInit {
       return;
     }
 
-    this.uploadingThumbnail.set(true);
-    this.fantasyGameService.uploadThumbnailImage(this.fantasyGameId, file).subscribe({
+    this.uploadingBenchBackground.set(true);
+    this.fantasyGameService.uploadBenchBackgroundImage(this.fantasyGameId, file).subscribe({
       next: (fantasyGame) => {
-        this.thumbnailUrl.set(fantasyGame.thumbnailUrl);
-        this.uploadingThumbnail.set(false);
+        this.benchBackgroundImageUrl.set(fantasyGame.benchBackgroundImageUrl);
+        this.uploadingBenchBackground.set(false);
         input.value = '';
       },
       error: () => {
-        this.snackBar.open('Failed to upload thumbnail image.', 'Close', { duration: 3000 });
-        this.uploadingThumbnail.set(false);
+        this.snackBar.open('Failed to upload bench background image.', 'Close', { duration: 3000 });
+        this.uploadingBenchBackground.set(false);
         input.value = '';
       }
     });
+  }
+
+  removeBenchBackgroundImage(): void {
+    this.benchBackgroundImageUrl.set(null);
   }
 
   private validateImageFile(file: File): boolean {
@@ -467,10 +430,6 @@ export class FieldBuilderComponent implements OnInit {
       return false;
     }
     return true;
-  }
-
-  removeThumbnailImage(): void {
-    this.thumbnailUrl.set(null);
   }
 
   cellId(row: number, col: number): string {
@@ -629,6 +588,10 @@ export class FieldBuilderComponent implements OnInit {
       return;
     }
 
+    if (this.showScoringRuleForm && this.ruleFormName.trim()) {
+      this.confirmScoringRule();
+    }
+
     const request = {
       name: this.fantasyGame.name,
       description: this.fantasyGame.description ?? undefined,
@@ -640,8 +603,12 @@ export class FieldBuilderComponent implements OnInit {
       pickFieldCols: this.hasPickField() ? this.pickFieldCols() : undefined,
       pickBenchRows: this.pickBenchRows() ?? undefined,
       pickBenchCols: this.pickBenchCols() ?? undefined,
+      startDate: this.fantasyGame.startDate ?? undefined,
+      endDate: this.fantasyGame.endDate ?? undefined,
       budget: this.fantasyGame.budget ?? undefined,
+      currency: this.fantasyGame.currency ?? undefined,
       backgroundImageUrl: this.backgroundImageUrl() ?? undefined,
+      benchBackgroundImageUrl: this.benchBackgroundImageUrl() ?? undefined,
       thumbnailUrl: this.thumbnailUrl() ?? undefined,
       positions: this.positions().map((p) => ({
         name: p.name,
