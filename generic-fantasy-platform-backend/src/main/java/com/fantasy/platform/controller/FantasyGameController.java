@@ -58,6 +58,13 @@ public class FantasyGameController {
         return ResponseEntity.ok(fantasyGameService.uploadBackgroundImage(id, file, principal.getUser().getId()));
     }
 
+    @PostMapping("/{id}/bench-background-image")
+    public ResponseEntity<FantasyGameResponse> uploadBenchBackgroundImage(@PathVariable Long id,
+                                                                  @RequestParam("file") MultipartFile file,
+                                                                  @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(fantasyGameService.uploadBenchBackgroundImage(id, file, principal.getUser().getId()));
+    }
+
     @PostMapping("/{id}/thumbnail-image")
     public ResponseEntity<FantasyGameResponse> uploadThumbnailImage(@PathVariable Long id,
                                                                 @RequestParam("file") MultipartFile file,

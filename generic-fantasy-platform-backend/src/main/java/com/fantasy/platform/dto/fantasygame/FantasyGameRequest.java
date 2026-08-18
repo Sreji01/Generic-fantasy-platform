@@ -6,11 +6,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public record FantasyGameRequest(
         @NotBlank String name,
         String description,
+        LocalDate startDate,
+        LocalDate endDate,
         @NotNull @Min(1) Integer fieldRows,
         @NotNull @Min(1) Integer fieldCols,
         @Min(1) Integer benchRows,
@@ -20,7 +23,9 @@ public record FantasyGameRequest(
         @Min(1) Integer pickBenchRows,
         @Min(1) Integer pickBenchCols,
         @DecimalMin("0.0") Double budget,
+        String currency,
         String backgroundImageUrl,
+        String benchBackgroundImageUrl,
         String thumbnailUrl,
         @Valid List<FantasyGameScoringRuleRequest> scoringRules,
         @Valid List<FantasyGamePositionRequest> positions,

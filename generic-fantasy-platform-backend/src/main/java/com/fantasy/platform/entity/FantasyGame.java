@@ -16,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +35,12 @@ public class FantasyGame {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @Column(name = "field_rows", nullable = false, columnDefinition = "INTEGER DEFAULT 10")
     private Integer fieldRows = 10;
@@ -62,8 +69,14 @@ public class FantasyGame {
     @Column(name = "budget")
     private Double budget;
 
+    @Column(name = "currency", length = 10)
+    private String currency;
+
     @Column(name = "background_image_url")
     private String backgroundImageUrl;
+
+    @Column(name = "bench_background_image_url")
+    private String benchBackgroundImageUrl;
 
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;

@@ -33,6 +33,10 @@ public class FileStorageService {
         return storeFantasyGameImage(fantasyGameId, file, "background");
     }
 
+    public String storeFantasyGameBenchBackgroundImage(Long fantasyGameId, MultipartFile file) {
+        return storeFantasyGameImage(fantasyGameId, file, "bench");
+    }
+
     public String storeFantasyGameThumbnailImage(Long fantasyGameId, MultipartFile file) {
         return storeFantasyGameImage(fantasyGameId, file, "thumbnail");
     }

@@ -49,6 +49,8 @@ public class FantasyGameService {
         FantasyGame fantasyGame = new FantasyGame();
         fantasyGame.setName(request.name());
         fantasyGame.setDescription(request.description());
+        fantasyGame.setStartDate(request.startDate());
+        fantasyGame.setEndDate(request.endDate());
         fantasyGame.setFieldRows(request.fieldRows());
         fantasyGame.setFieldCols(request.fieldCols());
         fantasyGame.setBenchRows(request.benchRows());
@@ -58,7 +60,9 @@ public class FantasyGameService {
         fantasyGame.setPickBenchRows(request.pickBenchRows());
         fantasyGame.setPickBenchCols(request.pickBenchCols());
         fantasyGame.setBudget(request.budget());
+        fantasyGame.setCurrency(request.currency());
         fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
+        fantasyGame.setBenchBackgroundImageUrl(request.benchBackgroundImageUrl());
         fantasyGame.setThumbnailUrl(request.thumbnailUrl());
         fantasyGame.setCreatedBy(currentUser);
         fantasyGame.setPositions(buildPositions(request.positions(), fantasyGame));
@@ -84,6 +88,8 @@ public class FantasyGameService {
 
         fantasyGame.setName(request.name());
         fantasyGame.setDescription(request.description());
+        fantasyGame.setStartDate(request.startDate());
+        fantasyGame.setEndDate(request.endDate());
         fantasyGame.setFieldRows(request.fieldRows());
         fantasyGame.setFieldCols(request.fieldCols());
         fantasyGame.setBenchRows(request.benchRows());
@@ -93,7 +99,9 @@ public class FantasyGameService {
         fantasyGame.setPickBenchRows(request.pickBenchRows());
         fantasyGame.setPickBenchCols(request.pickBenchCols());
         fantasyGame.setBudget(request.budget());
+        fantasyGame.setCurrency(request.currency());
         fantasyGame.setBackgroundImageUrl(request.backgroundImageUrl());
+        fantasyGame.setBenchBackgroundImageUrl(request.benchBackgroundImageUrl());
         fantasyGame.setThumbnailUrl(request.thumbnailUrl());
 
         fantasyGame.getPositions().clear();
@@ -114,6 +122,15 @@ public class FantasyGameService {
         requireOwnerOrAdmin(fantasyGame, userId);
 
         fantasyGame.setBackgroundImageUrl(fileStorageService.storeFantasyGameBackgroundImage(id, file));
+        fantasyGameRepository.save(fantasyGame);
+        return toResponse(fantasyGame);
+    }
+
+    public FantasyGameResponse uploadBenchBackgroundImage(Long id, MultipartFile file, Long userId) {
+        FantasyGame fantasyGame = findFantasyGameOrThrow(id);
+        requireOwnerOrAdmin(fantasyGame, userId);
+
+        fantasyGame.setBenchBackgroundImageUrl(fileStorageService.storeFantasyGameBenchBackgroundImage(id, file));
         fantasyGameRepository.save(fantasyGame);
         return toResponse(fantasyGame);
     }
@@ -310,6 +327,8 @@ public class FantasyGameService {
                 fantasyGame.getId(),
                 fantasyGame.getName(),
                 fantasyGame.getDescription(),
+                fantasyGame.getStartDate(),
+                fantasyGame.getEndDate(),
                 fantasyGame.getFieldRows(),
                 fantasyGame.getFieldCols(),
                 fantasyGame.getBenchRows(),
@@ -319,7 +338,9 @@ public class FantasyGameService {
                 fantasyGame.getPickBenchRows(),
                 fantasyGame.getPickBenchCols(),
                 fantasyGame.getBudget(),
+                fantasyGame.getCurrency(),
                 fantasyGame.getBackgroundImageUrl(),
+                fantasyGame.getBenchBackgroundImageUrl(),
                 fantasyGame.getThumbnailUrl(),
                 fantasyGame.getPlayers().size(),
                 scoringRules,
