@@ -80,17 +80,41 @@ public class LeagueService {
     }
 
     private void applyRequest(League league, LeagueRequest request, FantasyGame fantasyGame) {
+        validateDatesWithinFantasyGame(request, fantasyGame);
+
         league.setName(request.name());
         league.setDescription(request.description());
         league.setFantasyGame(fantasyGame);
         league.setStartDate(request.startDate());
         league.setEndDate(request.endDate());
         league.setStatus(request.status());
-        league.setMaxPlayersPerTeam(request.maxPlayersPerTeam());
         league.setIsPublic(request.isPublic() != null ? request.isPublic() : true);
 
         if (!league.getIsPublic() && league.getJoinCode() == null) {
             league.setJoinCode(generateUniqueJoinCode());
+        }
+    }
+
+    private void validateDatesWithinFantasyGame(LeagueRequest request, FantasyGame fantasyGame) {
+        if (request.startDate() != null && fantasyGame.getStartDate() != null
+                && request.startDate().isBefore(fantasyGame.getStartDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "League start date cannot be before the fantasy game's start date");
+        }
+        if (request.endDate() != null && fantasyGame.getEndDate() != null
+                && request.endDate().isAfter(fantasyGame.getEndDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "League end date cannot be after the fantasy game's end date");
+        }
+        if (request.startDate() != null && fantasyGame.getEndDate() != null
+                && request.startDate().isAfter(fantasyGame.getEndDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "League start date cannot be after the fantasy game's end date");
+        }
+        if (request.endDate() != null && fantasyGame.getStartDate() != null
+                && request.endDate().isBefore(fantasyGame.getStartDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "League end date cannot be before the fantasy game's start date");
         }
     }
 
@@ -135,7 +159,6 @@ public class LeagueService {
                 league.getStartDate(),
                 league.getEndDate(),
                 league.getStatus(),
-                league.getMaxPlayersPerTeam(),
                 league.getFantasyTeams().size(),
                 league.getIsPublic(),
                 includeJoinCode ? league.getJoinCode() : null

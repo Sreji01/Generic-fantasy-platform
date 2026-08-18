@@ -52,9 +52,6 @@ public class League {
     @Column(nullable = false)
     private LeagueStatus status;
 
-    @Column(name = "max_players_per_team")
-    private Integer maxPlayersPerTeam;
-
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = true;
 

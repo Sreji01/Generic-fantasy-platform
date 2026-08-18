@@ -13,7 +13,6 @@ public record LeagueResponse(
         LocalDate startDate,
         LocalDate endDate,
         LeagueStatus status,
-        Integer maxPlayersPerTeam,
         Integer participantCount,
         Boolean isPublic,
         String joinCode

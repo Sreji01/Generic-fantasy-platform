@@ -13,7 +13,6 @@ public record LeagueRequest(
         LocalDate startDate,
         LocalDate endDate,
         @NotNull LeagueStatus status,
-        Integer maxPlayersPerTeam,
         Boolean isPublic
 ) {
 }
