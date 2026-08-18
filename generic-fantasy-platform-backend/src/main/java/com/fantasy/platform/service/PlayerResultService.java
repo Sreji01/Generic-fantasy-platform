@@ -35,6 +35,7 @@ public class PlayerResultService {
     private final RoundRepository roundRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final ScoreService scoreService;
 
     public PlayerResultResponse create(PlayerResultRequest request, Long userId) {
         Player player = findPlayerOrThrow(request.playerId());
@@ -46,6 +47,7 @@ public class PlayerResultService {
         applyRequest(result, request, player, round);
 
         playerResultRepository.save(result);
+        scoreService.calculateForRound(round.getId(), userId);
         return toResponse(result);
     }
 
@@ -75,13 +77,16 @@ public class PlayerResultService {
         applyRequest(result, request, player, round);
 
         playerResultRepository.save(result);
+        scoreService.calculateForRound(round.getId(), userId);
         return toResponse(result);
     }
 
     public void delete(Long id, Long userId) {
         PlayerResult result = findResultOrThrow(id);
         requireFantasyGameOwnerOrAdmin(result.getRound(), userId);
+        Long roundId = result.getRound().getId();
         playerResultRepository.delete(result);
+        scoreService.calculateForRound(roundId, userId);
     }
 
     private void applyRequest(PlayerResult result, PlayerResultRequest request, Player player, Round round) {
